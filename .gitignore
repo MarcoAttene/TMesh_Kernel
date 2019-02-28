@@ -1,0 +1,16 @@
+*.obj
+
+*.o
+
+*.ilk
+
+*.exe
+
+*.sdf
+
+*.suo
+
+build/msvc/obj
+
+build/msvc/obj64
+
