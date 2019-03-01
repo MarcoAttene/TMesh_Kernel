@@ -34,15 +34,8 @@
 namespace T_MESH
 {
 
-// Unfortunately Mpir does not manage initialization from non-finite floating point numbers.
-// That is why the following two constants have been (improperly) switched to DBL_MAX.
-// This must be changed, but making it efficiently requires an in-depth implementation
-// of the interface with Mpir.
-
 #define TMESH_NAN				NAN
-
-//#define TMESH_INFINITY			INFINITY
-#define TMESH_INFINITY			DBL_MAX
+#define TMESH_INFINITY			INFINITY
 
 // This is the maximum value that can be represented in all the possible configurations
 #define TMESH_MAX_COORDINATE	DBL_MAX
@@ -86,13 +79,14 @@ namespace T_MESH
 
 #include <mpirxx.h>
 
-typedef mpq_class tmesh_fraction;
-
 #include <stdint.h>
 namespace T_MESH
 {
 	// Use the following to filter out sign and mantissa
 #define EXPONENT_MASK	0x7FF0000000000000L
+
+	// Use the following to filter out sign and exponent
+#define MANTISSA_MASK	0x000FFFFFFFFFFFFFL
 
 	//This is 2^(-52) << 52
 #define MACH_DIFFEPS	0x0340000000000000L
@@ -107,7 +101,31 @@ namespace T_MESH
 		inline error_approx_type_t() {}
 		inline error_approx_type_t(double a) : d(a) {}
 		inline uint64_t is_negative() const { return u >> 63; }
+		inline bool is_finite() const { return ((u & EXPONENT_MASK) != EXPONENT_MASK); }
+		inline bool is_nan() const { return (u & MANTISSA_MASK); }
 	} casted_double;
+
+	// This is to override the default behaviour of an mpq_class constructed out of a double.
+	// We need this to correctly handle NaNs and Infinities.
+	// A more efficient solution is possible by tweaking mpir directly (function mpq_set_d()),
+	// but this solution would require a fork to mpir which becomes tricky to update.
+	class tmesh_fraction : public mpq_class
+	{
+	public:
+		inline tmesh_fraction() : mpq_class() {}
+		inline tmesh_fraction(const mpq_class& a) : mpq_class(a) {}
+		inline tmesh_fraction(const tmesh_fraction& a) : mpq_class(a) {}
+		inline tmesh_fraction(mpq_srcptr q) : mpq_class(q) {}
+		inline tmesh_fraction(const mpz_class &num, const mpz_class &den) : mpq_class(num, den) {}
+		inline tmesh_fraction(double a) : mpq_class()
+		{
+			casted_double d(a);
+			if (d.is_finite()) mpq_set_d(__get_mp(), a);
+			else if (d.is_nan()) { *this = mpq_class(0, 0); }
+			else if (d.is_negative()) { *this = mpq_class(-1, 0); }
+			else { *this = mpq_class(1, 0); }
+		}
+	};
 }
 
 #ifdef USE_LAZY_KERNEL
