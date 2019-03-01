@@ -39,8 +39,8 @@ namespace T_MESH
 // This must be changed, but making it efficiently requires an in-depth implementation
 // of the interface with Mpir.
 
-//#define TMESH_NAN				NAN
-#define TMESH_NAN				DBL_MAX
+#define TMESH_NAN				NAN
+
 //#define TMESH_INFINITY			INFINITY
 #define TMESH_INFINITY			DBL_MAX
 
