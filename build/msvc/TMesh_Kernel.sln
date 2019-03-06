@@ -12,12 +12,12 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Kernel_Test", "kernel_test.
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Fast|Win32 = Fast|Win32
-		Fast|x64 = Fast|x64
-		Hybrid|Win32 = Hybrid|Win32
-		Hybrid|x64 = Hybrid|x64
-		Lazy|Win32 = Lazy|Win32
 		Lazy|x64 = Lazy|x64
+		Lazy|Win32 = Lazy|Win32
+		Hybrid|x64 = Hybrid|x64
+		Hybrid|Win32 = Hybrid|Win32
+		Fast|x64 = Fast|x64
+		Fast|Win32 = Fast|Win32
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{69C50092-3F56-4B3B-BD5B-0EA541C14AB2}.Fast|Win32.ActiveCfg = Fast|Win32
