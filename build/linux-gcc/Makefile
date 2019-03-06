@@ -13,15 +13,13 @@ TMESH_KERNEL_SRC	= ../../src
 TMESH_KERNEL_INCLUDE	= ../../include
 TMESH_KERNEL_BUILD	= ../../bin64
 
-BUILD_OPTIONS = -DUSE_HYBRID_KERNEL -DUSE_LAZY_KERNEL
+BUILD_OPTIONS = -DIS64BITPLATFORM -DUSE_HYBRID_KERNEL -DUSE_LAZY_KERNEL
 
 ####### Compiler, tools and options
 
-CC            = gcc
 CXX           = g++
 DEFINES       = $(BUILD_OPTIONS)
-CFLAGS        = -pipe -g -fPIC -Wall -W -D_REENTRANT $(DEFINES) -fopenmp
-CXXFLAGS      = -pipe -g -fPIC -Wall -W -D_REENTRANT $(DEFINES) -fopenmp
+CXXFLAGS      = -Wall -frounding-math $(DEFINES) -fopenmp
 INCPATH       = -I$(MPIR_DIR) -I$(TMESH_KERNEL_INCLUDE)
 DEL_FILE      = rm -f
 CHK_DIR_EXISTS= test -d
@@ -48,12 +46,19 @@ OBJECTS_DIR   = ./
 SOURCES_TEST	= $(TMESH_KERNEL_SRC)/test_kernel.cpp 
 OBJECTS_TEST	= $(TMESH_KERNEL_BUILD)/test_kernel.o 
 
-SOURCES       = $(TMESH_KERNEL_SRC)/mixedPredicates.cpp \
+SOURCES = $(TMESH_KERNEL_SRC)/mixedPredicates.cpp \
 		$(TMESH_KERNEL_SRC)/tmesh.cpp \
 		$(TMESH_KERNEL_SRC)/point.cpp \
 		$(TMESH_KERNEL_SRC)/orientation.cpp \
 		$(TMESH_KERNEL_SRC)/expansion.cpp \
 		$(TMESH_KERNEL_SRC)/coordinates.cpp 
+		
+HEADERS = $(TMESH_KERNEL_INCLUDE)/mixedPredicates.h \
+		  $(TMESH_KERNEL_INCLUDE)/basics.h \
+		  $(TMESH_KERNEL_INCLUDE)/point.h \
+		  $(TMESH_KERNEL_INCLUDE)/unprecise_numbers.h \
+		  $(TMESH_KERNEL_INCLUDE)/expansion.h \
+		  $(TMESH_KERNEL_INCLUDE)/coordinates.h
 
 OBJECTS       = $(TMESH_KERNEL_BUILD)/mixedPredicates.o \
 		$(TMESH_KERNEL_BUILD)/tmesh.o \
@@ -87,6 +92,6 @@ clean:
 
 ####### Compile
 
-$(TMESH_KERNEL_BUILD)/%.o : $(TMESH_KERNEL_SRC)/%.cpp 
+$(TMESH_KERNEL_BUILD)/%.o : $(TMESH_KERNEL_SRC)/%.cpp $(HEADERS)
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) $< -o $@
 

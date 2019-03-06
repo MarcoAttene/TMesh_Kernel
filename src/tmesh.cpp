@@ -236,11 +236,12 @@ void TMesh::init(void(*dm)(const char *, int))
 	filename = NULL;
 	quiet = false;
 
+	setFPU53BitsPrecision();
+
 #ifdef USE_HYBRID_KERNEL
 	setFPUModeToRoundUP();
+	useRationals(false);
 #endif
-
-	setFPU53BitsPrecision();
 }
 
 } //namespace T_MESH

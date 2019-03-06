@@ -110,7 +110,7 @@ Using the library
 
 The easiest way to start is to copy the compilation rules from kernel_test.vcxproj (on 
 Windows) or from the Makefile provided for Linux-gcc.
-In any case, here are general rule to compile your application.
+In any case, here are general rules to compile your application.
 
 --- include path must include:
 $(TMESH_HOME)/include
