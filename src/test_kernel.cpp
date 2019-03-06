@@ -149,11 +149,12 @@ int main()
 	std::cout << "Needed " << ((clock() - c0) / 1000) << " seconds to sequentially calculate " << num_tests << " insphere predicates.\n";
 
 	// Here we use OpenMP to concurrently redo the same calculation.
-	// Remember to always use 'firstprivate(tmesh_thread_initializer)' to correctly
-	// set the FPU mode in all the threads.
+	// Remember to always use TMESH_OMP_CLAUSES to correctly
+	// set TMesh_Kernel mode in all the threads.
 
 	c0 = clock();
-#pragma omp parallel for firstprivate(tmesh_thread_initializer) schedule(dynamic) 
+
+#pragma omp parallel for TMESH_OMP_CLAUSES schedule(dynamic) 
 	for (int i = 0; i < num_tests; i++)
 	{
 		Point p1(rand(), rand(), rand()); p1 /= 3;

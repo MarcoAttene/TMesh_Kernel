@@ -105,27 +105,230 @@ namespace T_MESH
 		inline bool is_nan() const { return (u & MANTISSA_MASK); }
 	} casted_double;
 
-	// This is to override the default behaviour of an mpq_class constructed out of a double.
-	// We need this to correctly handle NaNs and Infinities.
-	// A more efficient solution is possible by tweaking mpir directly (function mpq_set_d()),
+	// tmesh_fraction is essentially the same as mpq_class, but it correctly implements
+	// the semantics of NaNs and Infinities as specified in IEEE 754 standard.
+	// A more efficient solution is possible by tweaking mpir directly,
 	// but this solution would require a fork to mpir which becomes tricky to update.
-	class tmesh_fraction : public mpq_class
+	// Hopefully, future versions of mpir will correctly handle these cases.
+	// If and when this will happen, tmesh_fraction should be easily replaceable with
+	// mpq_class.
+
+	class tmesh_fraction
 	{
+	private:
+		mpq_t mp;
+
+		// Quick zero-check for mpz numbers
+		static inline int is_mpz_zero(const __mpz_struct& z) { return (!z._mp_size); }
+
+		// TRUE if mpq is NAN or INFINITY
+		static inline bool is_nan_or_infinity(const mpq_t& op) { return is_mpz_zero(op->_mp_den); }
+
+		// TRUE if mpq is ZERO
+		static inline bool is_zero(const mpq_t& op) { return is_mpz_zero(op->_mp_num); }
+
+		// TRUE if either arg is NAN or INFINITY
+		static inline bool nan_or_infinity_ops(const mpq_t& op1, const mpq_t& op2) { return (is_nan_or_infinity(op1) || is_nan_or_infinity(op2)); }
+
+		// TRUE if op is NAN
+		static inline bool is_nan(const mpq_t& op) { return (is_mpz_zero(op->_mp_num) && is_mpz_zero(op->_mp_den)); }
+
+		// TRUE if op is INFINITY
+		static inline bool is_infinity(const mpq_t& op) { return (!is_mpz_zero(op->_mp_num) && is_mpz_zero(op->_mp_den)); }
+
+		// TRUE if op is POSITIVE INFINITY
+		static inline bool is_plus_infinity(const mpq_t& op) { return ((op->_mp_num._mp_size > 0) && is_mpz_zero(op->_mp_den)); }
+
+		// TRUE if op is NEGATIVE INFINITY
+		static inline bool is_minus_infinity(const mpq_t& op) { return ((op->_mp_num._mp_size < 0) && is_mpz_zero(op->_mp_den)); }
+
+		// TRUE if op is POSITIVE (including infinity)
+		static inline bool is_positive(const mpq_t& op) { return (op->_mp_num._mp_size > 0); }
+
+		// TRUE if op is NEGATIVE (including infinity)
+		static inline bool is_negative(const mpq_t& op) { return (op->_mp_num._mp_size < 0); }
+
+
 	public:
-		inline tmesh_fraction() : mpq_class() {}
-		inline tmesh_fraction(const mpq_class& a) : mpq_class(a) {}
-		inline tmesh_fraction(const tmesh_fraction& a) : mpq_class(a) {}
-		inline tmesh_fraction(mpq_srcptr q) : mpq_class(q) {}
-		inline tmesh_fraction(const mpz_class &num, const mpz_class &den) : mpq_class(num, den) {}
-		inline tmesh_fraction(double a) : mpq_class()
+		inline tmesh_fraction() { mpq_init(mp); }
+		inline tmesh_fraction(const tmesh_fraction& a) { mpq_init(mp); mpq_set(mp, a.mp); }
+		inline tmesh_fraction(mpq_srcptr q) { mpq_init(mp); mpq_set(mp, q); }
+		inline tmesh_fraction(const mpz_srcptr &d) { mpq_init(mp); mpz_set(mpq_numref(mp), d); mpz_set_ui(mpq_denref(mp), 1); }
+		inline tmesh_fraction(const mpz_srcptr &num, const mpz_srcptr &den) { mpq_init(mp); mpz_set(mpq_numref(mp), num); mpz_set(mpq_denref(mp), den); }
+		inline tmesh_fraction(double a)
 		{
+			mpq_init(mp);
 			casted_double d(a);
-			if (d.is_finite()) mpq_set_d(__get_mp(), a);
-			else if (d.is_nan()) { *this = mpq_class(0, 0); }
-			else if (d.is_negative()) { *this = mpq_class(-1, 0); }
-			else { *this = mpq_class(1, 0); }
+			if (d.is_finite()) mpq_set_d(mp, a);
+			else if (d.is_nan()) setAsNAN();
+			else if (d.is_negative()) setAsMinusInfinity();
+			else setAsPlusInfinity();
 		}
+
+		inline void setAsNAN() { mpz_set_ui(mpq_numref(mp), 0); mpz_set_ui(mpq_denref(mp), 0); }
+		inline void setAsPlusInfinity() { mpz_set_ui(mpq_numref(mp), 1); mpz_set_ui(mpq_denref(mp), 0); }
+		inline void setAsMinusInfinity() { mpz_set_si(mpq_numref(mp), -1); mpz_set_ui(mpq_denref(mp), 0); }
+
+		const mpq_t& get_mpq_t() const { return mp; }
+
+		inline double get_d() const { return mpq_get_d(mp); }
+
+		inline const mpz_srcptr get_den() const { return &mp->_mp_den; }
+		inline const mpz_srcptr get_num() const { return &mp->_mp_num; }
+
+		inline tmesh_fraction operator+(const tmesh_fraction& b) const
+		{
+			tmesh_fraction r;
+			if (nan_or_infinity_ops(mp, b.mp))
+			{
+				if (is_nan(mp) || is_nan(b.mp) || (is_plus_infinity(mp) && is_minus_infinity(b.mp)) || (is_plus_infinity(b.mp) && is_minus_infinity(mp))) { r.setAsNAN(); return r; }
+				if (is_plus_infinity(mp) || is_plus_infinity(b.mp)) { r.setAsPlusInfinity(); return r; }
+				if (is_minus_infinity(mp) || is_minus_infinity(b.mp)) { r.setAsMinusInfinity(); return r; }
+			}
+			mpq_add(r.mp, mp, b.mp);
+			return r;
+		}
+
+		inline tmesh_fraction operator-(const tmesh_fraction& b) const
+		{
+			tmesh_fraction r;
+			if (nan_or_infinity_ops(mp, b.mp))
+			{
+				if (is_nan(mp) || is_nan(b.mp) || (is_plus_infinity(mp) && is_plus_infinity(b.mp)) || (is_minus_infinity(b.mp) && is_minus_infinity(mp))) { r.setAsNAN(); return r; }
+				if (is_plus_infinity(mp) || is_minus_infinity(b.mp)) { r.setAsPlusInfinity(); return r; }
+				if (is_minus_infinity(mp) || is_plus_infinity(b.mp)) { r.setAsMinusInfinity(); return r; }
+			}
+			mpq_sub(r.mp, mp, b.mp);
+			return r;
+		}
+
+		inline tmesh_fraction operator*(const tmesh_fraction& b) const
+		{
+			tmesh_fraction r;
+			if (nan_or_infinity_ops(mp, b.mp))
+			{
+				if (is_nan(mp) || is_nan(b.mp) || (is_infinity(mp) && is_zero(b.mp)) || (is_infinity(b.mp) && is_zero(mp))) { r.setAsNAN(); return r; }
+				if ((is_negative(mp) && is_negative(b.mp)) || (is_positive(mp) && is_positive(b.mp))) { r.setAsPlusInfinity(); return r; }
+				if ((is_negative(mp) && is_positive(b.mp)) || (is_positive(mp) && is_negative(b.mp))) { r.setAsMinusInfinity(); return r; }
+			}
+			mpq_mul(r.mp, mp, b.mp);
+			return r;
+		}
+
+		inline tmesh_fraction operator/(const tmesh_fraction& b) const
+		{
+			tmesh_fraction r;
+			if (nan_or_infinity_ops(mp, b.mp) || is_zero(b.mp))
+			{
+				if (is_nan(mp) || is_nan(b.mp) || (is_zero(mp) && is_zero(b.mp)) || (is_infinity(b.mp) && is_infinity(mp))) { r.setAsNAN(); return r; }
+				if (is_infinity(b.mp)) { return r; }
+				if (is_positive(mp)) { r.setAsPlusInfinity(); return r; }
+				if (is_negative(mp)) { r.setAsMinusInfinity(); return r; }
+			}
+			mpq_div(r.mp, mp, b.mp);
+			return r;
+		}
+
+		inline tmesh_fraction& operator+=(const tmesh_fraction& b)
+		{
+			tmesh_fraction r = (*this) + (b);
+			mpq_set(mp, r.mp);
+			return *this;
+		}
+
+		inline tmesh_fraction& operator-=(const tmesh_fraction& b)
+		{
+			tmesh_fraction r = (*this) - (b);
+			mpq_set(mp, r.mp);
+			return *this;
+		}
+
+		inline tmesh_fraction& operator*=(const tmesh_fraction& b)
+		{
+			tmesh_fraction r = (*this) * (b);
+			mpq_set(mp, r.mp);
+			return *this;
+		}
+
+		inline tmesh_fraction& operator/=(const tmesh_fraction& b)
+		{
+			tmesh_fraction r = (*this) / (b);
+			mpq_set(mp, r.mp);
+			return *this;
+		}
+
+		inline bool operator==(const tmesh_fraction& b) const {
+			if (nan_or_infinity_ops(mp, b.mp))
+			{
+				return ((is_plus_infinity(mp) && is_plus_infinity(b.mp)) || (is_minus_infinity(mp) && is_minus_infinity(b.mp)));
+			}
+			return mpq_equal(mp, b.mp);
+		}
+		inline bool operator!=(const tmesh_fraction& b) const {
+			if (nan_or_infinity_ops(mp, b.mp))
+			{
+				return (!((is_plus_infinity(mp) && is_plus_infinity(b.mp)) || (is_minus_infinity(mp) && is_minus_infinity(b.mp))));
+			}
+			return !mpq_equal(mp, b.mp);
+		}
+		inline bool operator<(const tmesh_fraction& b) const {
+			if (nan_or_infinity_ops(mp, b.mp))
+			{
+				if (is_nan(mp) || is_nan(b.mp)) return false;
+				return ((is_plus_infinity(b.mp) && !is_plus_infinity(mp)) || ((is_minus_infinity(mp) && !is_minus_infinity(b.mp))));
+			}
+			return (mpq_cmp(mp, b.mp)<0);
+		}
+		inline bool operator>(const tmesh_fraction& b) const {
+			if (nan_or_infinity_ops(mp, b.mp))
+			{
+				if (is_nan(mp) || is_nan(b.mp)) return false;
+				return ((is_plus_infinity(mp) && !is_plus_infinity(b.mp)) || ((is_minus_infinity(b.mp) && !is_minus_infinity(mp))));
+			}
+			return (mpq_cmp(mp, b.mp)>0);
+		}
+		inline bool operator<=(const tmesh_fraction& b) const {
+			if (nan_or_infinity_ops(mp, b.mp))
+			{
+				if (is_nan(mp) || is_nan(b.mp)) return false;
+				return (is_plus_infinity(b.mp) || is_minus_infinity(mp));
+			}
+			return (mpq_cmp(mp, b.mp) <= 0);
+		}
+		inline bool operator>=(const tmesh_fraction& b) const {
+			if (nan_or_infinity_ops(mp, b.mp))
+			{
+				if (is_nan(mp) || is_nan(b.mp)) return false;
+				return (is_plus_infinity(mp) || is_minus_infinity(b.mp));
+			}
+			return (mpq_cmp(mp, b.mp) >= 0);
+		}
+
+		inline bool operator==(int b) const { return (!is_nan_or_infinity(mp) && (mpq_cmp_si(mp, b, 1) == 0)); }
+
+		inline bool operator!=(int b) const { return (is_nan_or_infinity(mp) || (mpq_cmp_si(mp, b, 1) != 0)); }
+
+		inline bool operator<(int b) const { 
+			if (is_nan_or_infinity(mp)) return is_minus_infinity(mp);
+			return (mpq_cmp_si(mp, b, 1) < 0); 
+		}
+		inline bool operator>(int b) const { 
+			if (is_nan_or_infinity(mp)) return is_plus_infinity(mp);
+			return (mpq_cmp_si(mp, b, 1) > 0);
+		}
+		inline bool operator<=(int b) const { 
+			if (is_nan_or_infinity(mp)) return is_minus_infinity(mp);
+			return (mpq_cmp_si(mp, b, 1) <= 0);
+		}
+		inline bool operator>=(int b) const {
+			if (is_nan_or_infinity(mp)) return is_plus_infinity(mp);
+			return (mpq_cmp_si(mp, b, 1) >= 0);
+		}
+
+		inline int sign() const { return mpq_sgn(mp); }
 	};
+
+	inline int sgn(const tmesh_fraction& f) { return f.sign(); }
 }
 
 #ifdef USE_LAZY_KERNEL
@@ -143,7 +346,11 @@ typedef T_MESH::lazy_num EXACT_NT;
 
 #else
 
+namespace T_MESH
+{
 typedef tmesh_fraction EXACT_NT;
+}
+
 #define EXACT_NT_FRACTION(x)	(*(x))
 #define EXACT_NT_SIGN(x) (sgn(x))
 #define EXACT_NT_TO_DOUBLE(x) ((x).get_d())
@@ -168,13 +375,16 @@ double to_lower_double(const tmesh_fraction& a);
 
 class PM_Rational
 	{
-	private:
-		// This represents the current kernel precision (TRUE=exact, FLASE=approximated)
-		static bool use_rationals;
-
+		// This represents the current kernel precision (TRUE=exact, FALSE=approximated)
 	public:
+#ifdef WIN32
+		static __declspec(thread) bool use_rationals;
+#else
+		static thread_local bool use_rationals;
+#endif
+
 		inline static bool isUsingRationals() { return use_rationals; }
-		static void useRationals(bool v) { use_rationals = v; }
+		inline static void useRationals(bool v) { use_rationals = v; }
 
 	protected:
 		union PM_value {
@@ -216,6 +426,7 @@ class PM_Rational
 	public:
 		inline PM_Rational() : _whv(0) {} // Undetermined double
 
+//		inline PM_Rational(const mpq_class& a) : _val(new EXACT_NT(a)), _whv(1) { }
 		inline PM_Rational(const EXACT_NT& a) : _val(new EXACT_NT(a)), _whv(1) { }
 		inline PM_Rational(float a) : _val(a), _whv(0) { }
 		inline PM_Rational(double a) : _val(a), _whv(0) { }
@@ -349,7 +560,7 @@ class PM_Rational
 
 		friend class unprecise_number;
 
-		void fput(FILE *fp) const { const EXACT_NT& n = toRational(); EXACT_NT_FPUT(&n, fp); }
+		inline void fput(FILE *fp) const { const EXACT_NT& n = toRational(); EXACT_NT_FPUT(&n, fp); }
 
 		int fget(FILE *fp);
 };
@@ -373,6 +584,8 @@ inline PM_Rational fabs(const PM_Rational& a) {	if (a < 0) return -a; else retur
 #define TMESH_TO_LOWER_DOUBLE(x) ((x).toLowerDouble())
 #define TMESH_TO_UPPER_DOUBLE(x) ((x).toUpperDouble())
 
+#define TMESH_OMP_CLAUSES firstprivate(tmesh_thread_initializer) copyin(PM_Rational::use_rationals)
+
 #else
 
 typedef double PM_Rational;
@@ -382,6 +595,8 @@ typedef double PM_Rational;
 #define TMESH_TO_INT(x) ((int)(x))
 #define TMESH_TO_LOWER_DOUBLE(x) (x)
 #define TMESH_TO_UPPER_DOUBLE(x) (x)
+
+#define TMESH_OMP_CLAUSES
 
 #endif
 

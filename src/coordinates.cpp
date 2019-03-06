@@ -27,13 +27,16 @@
 #include <limits>
 #include <cmath>
 
-
 namespace T_MESH
 {
 #ifdef USE_HYBRID_KERNEL
 
 // Default behaviour = FILTERED KERNEL
+#ifdef WIN32
 	bool PM_Rational::use_rationals = false;
+#else
+	thread_local bool PM_Rational::use_rationals = false;
+#endif
 
 	double to_upper_double(const tmesh_fraction& a)
 	{
@@ -85,11 +88,11 @@ PM_Rational ceil(const PM_Rational& a)
 		mpz_t n, d, f;
 		const EXACT_NT& en = a.toRational();
 		mpz_init(n); mpz_init(d); mpz_init(f);
-		mpz_set(n, EXACT_NT_NUMERATOR(&en).get_mpz_t());
-		mpz_set(d, EXACT_NT_DENOMINATOR(&en).get_mpz_t());
+		mpz_set(n, EXACT_NT_NUMERATOR(&en));
+		mpz_set(d, EXACT_NT_DENOMINATOR(&en));
 		mpz_cdiv_q(f, n, d);
 		mpz_clear(n); mpz_clear(d);
-		return PM_Rational(tmesh_fraction(mpz_class(f)));
+		return PM_Rational(tmesh_fraction(f));
 	}
 	else
 		return PM_Rational(::ceil(a.getDVal()));
@@ -102,11 +105,11 @@ PM_Rational floor(const PM_Rational& a)
 		mpz_t n, d, f;
 		const EXACT_NT& en = a.toRational();
 		mpz_init(n); mpz_init(d); mpz_init(f);
-		mpz_set(n, EXACT_NT_NUMERATOR(&en).get_mpz_t());
-		mpz_set(d, EXACT_NT_DENOMINATOR(&en).get_mpz_t());
+		mpz_set(n, EXACT_NT_NUMERATOR(&en));
+		mpz_set(d, EXACT_NT_DENOMINATOR(&en));
 		mpz_fdiv_q(f, n, d);
 		mpz_clear(n); mpz_clear(d);
-		return PM_Rational(tmesh_fraction(mpz_class(f)));
+		return PM_Rational(tmesh_fraction(f));
 	} else
 		return PM_Rational(::floor(a.getDVal()));
 }
@@ -118,12 +121,12 @@ PM_Rational round(const PM_Rational& a)
 		mpz_t n, d, f, c;
 		mpz_init(n); mpz_init(d); mpz_init(f); mpz_init(c);
 		const EXACT_NT& en = a.toRational();
-		mpz_set(n, EXACT_NT_NUMERATOR(&en).get_mpz_t());
-		mpz_set(d, EXACT_NT_DENOMINATOR(&en).get_mpz_t());
+		mpz_set(n, EXACT_NT_NUMERATOR(&en));
+		mpz_set(d, EXACT_NT_DENOMINATOR(&en));
 		mpz_cdiv_q(c, n, d);
 		mpz_clear(n); mpz_clear(d);
-		PM_Rational fr = PM_Rational(tmesh_fraction(mpz_class(f)));
-		PM_Rational cr = PM_Rational(tmesh_fraction(mpz_class(c)));
+		PM_Rational fr = PM_Rational(tmesh_fraction(f));
+		PM_Rational cr = PM_Rational(tmesh_fraction(c));
 		mpz_clear(f); mpz_clear(c);
 		return ((a - fr) < (cr - a)) ? (fr) : (cr);
 	} else
