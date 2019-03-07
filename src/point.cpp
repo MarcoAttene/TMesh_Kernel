@@ -326,21 +326,25 @@ Point Point::lineLineIntersection(const Point& p, const Point& q, const Point& r
 	Point dc(r - p);
 	Point dab(da&db);
 
-	if ((dc*dab) != 0.0) return INFINITE_POINT;
+	if (dab.isNull()) return INFINITE_POINT; // parallel
+	if ((dc*dab) != 0.0) return INFINITE_POINT; // skew
 
-	coord k = (((dc&db)*dab) / (dab*dab));
-	return p + (da*k);
+	return p + (da*(((dc&db)*dab) / (dab*dab)));
 }
 
 // Returns the point of intersection between the line for (p,q) and the plane for (r,s,t)
 // Returns INFINITE_POINT in case of parallelism
 Point Point::linePlaneIntersection(const Point& p, const Point& q, const Point& r, const Point& s, const Point& t)
 {
-	coord den = TMESH_DETERMINANT3X3(p.x - q.x, p.y - q.y, p.z - q.z, s.x - r.x, s.y - r.y, s.z - r.z, t.x - r.x, t.y - r.y, t.z - r.z);
+	coord a11(p.x - q.x), a12(p.y - q.y), a13(p.z - q.z);
+	coord a21(s.x - r.x), a22(s.y - r.y), a23(s.z - r.z);
+	coord a31(t.x - r.x), a32(t.y - r.y), a33(t.z - r.z);
+	coord a2233(a22*a33 - a23*a32);
+	coord a2133(a21*a33 - a23*a31);
+	coord a2132(a21*a32 - a22*a31);
+	coord den(a11*a2233 - a12*a2133 + a13*a2132);
 	if (den == 0) return INFINITE_POINT;
-	coord num = TMESH_DETERMINANT3X3(p.x - r.x, p.y - r.y, p.z - r.z, s.x - r.x, s.y - r.y, s.z - r.z, t.x - r.x, t.y - r.y, t.z - r.z);
-	coord gamma = num / den;
-	return p + ((q - p)*gamma);
+	return p + ((q - p)*(((p.x - r.x)*(a2233)-(p.y - r.y)*(a2133)+(p.z - r.z)*(a2132)) / den));
 }
 
 // Returns the point of intersection between the line for (v1,v2) and the plane for 'v0' with directional vector 'd'
