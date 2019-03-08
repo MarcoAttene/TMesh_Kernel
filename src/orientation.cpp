@@ -608,7 +608,7 @@ inline int incircle3D_filtered(const double* p0, const double* p1, const double*
 	double a22 = l2 * 2;
 	double a31 = (p30x * p10x + p30y * p10y + p30z * p10z)*2;
 	double a32 = (p30x * p20x + p30y * p20y + p30z * p20z)*2;
-		
+
 	double eps = (8.99983341597279045654e-14 * (((max1 * max2) * max2) * max2));
 	double det = (a11 * a22) - (a12 * a12);
 	int det_sign;
@@ -703,7 +703,7 @@ int incircle3D_exact(const double* p0, const double* p1, const double* p2, const
 
 	int det_len = o.Gen_Sum(det_1_len, det_1, det_2_len, det_2, det);
 
-	if (det_len == 0) return 0;
+	if (det_len == 0 || det[det_len - 1] == 0) return 0;
 	int s = (det[det_len - 1] > 0) ? (1) : (-1);
 
 	int r_1_len = o.Gen_Product(a12_len, a12, l1_len, l1, r_1);
@@ -723,7 +723,7 @@ int incircle3D_exact(const double* p0, const double* p1, const double* p2, const
 	int sr_len = o.Gen_Sum_With_Alloc(fr_3_len, fr_3, fr_2_len, fr_2, &sr);
 	o.Gen_Invert(sr_len, sr);
 	int r_len = o.Gen_Sum_With_Alloc(fr_1_len, fr_1, sr_len, sr, &r);
-	if (r_len == 0) s = 0;
+	if (r_len == 0 || r[r_len - 1] == 0) s = 0;
 	else if (r[r_len - 1] < 0) s = -s;
 
 	free(r);
