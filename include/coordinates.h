@@ -51,7 +51,11 @@ namespace T_MESH
 }
 
 #include <fenv.h>
+#if __APPLE__
+#define _FPU_SETCW(cw) // nothing https://developer.apple.com/library/archive/documentation/System/Conceptual/ManPages_iPhoneOS/man3/float.3.html
+#else
 #include <fpu_control.h>
+#endif
 
 namespace T_MESH
 {
@@ -77,7 +81,7 @@ namespace T_MESH
 #pragma warning( disable : 4800)
 #endif
 
-#include <mpirxx.h>
+#include <mpir.h>
 
 #include <stdint.h>
 namespace T_MESH
@@ -378,9 +382,9 @@ class PM_Rational
 		// This represents the current kernel precision (TRUE=exact, FALSE=approximated)
 	public:
 #ifdef WIN32
-		static __declspec(thread) bool use_rationals;
+		static __declspec(thread) char use_rationals;
 #else
-		static thread_local bool use_rationals;
+		static thread_local char use_rationals;
 #endif
 
 		inline static bool isUsingRationals() { return use_rationals; }
@@ -397,7 +401,7 @@ class PM_Rational
 			inline PM_value(int a) : d(a) {}
 			inline PM_value() {}
 		} _val;
-		bool _whv;			// Which value type is stored here. 1=rational, 0=double
+		char _whv;			// Which value type is stored here. 1=rational, 0=double
 
 		inline EXACT_NT& getVal() { return *_val.p; }
 		inline double& getDVal() { return _val.d; }
@@ -405,28 +409,27 @@ class PM_Rational
 		inline const EXACT_NT& getVal() const { return *_val.p; }
 		inline const double& getDVal() const { return _val.d; }
 
-		inline void S2D() // Switch to double
+		inline void S2DF() // Switch to double
 		{
-			if (_whv) {
-				EXACT_NT *ov = _val.p;
-				_val.d = EXACT_NT_TO_DOUBLE((*ov));
-				delete ov;
-				_whv = false;
-			}
+			EXACT_NT *ov = _val.p;
+			_val.d = EXACT_NT_TO_DOUBLE((*ov));
+			delete ov;
+			_whv = false;
 		}
 
-		inline void S2R() // Switch to rational
+		inline void S2D() { if (_whv) S2DF(); } // Switch to double
+		
+		inline void S2RF() // Switch to rational
 		{
-			if (!_whv) {
-				_val.p = new EXACT_NT(_val.d);
-				_whv = true;
-			}
+			_val.p = new EXACT_NT(_val.d);
+			_whv = true;
 		}
+
+		inline void S2R() { if (!_whv) S2RF(); } // Switch to rational
+		
 
 	public:
 		inline PM_Rational() : _whv(0) {} // Undetermined double
-
-//		inline PM_Rational(const mpq_class& a) : _val(new EXACT_NT(a)), _whv(1) { }
 		inline PM_Rational(const EXACT_NT& a) : _val(new EXACT_NT(a)), _whv(1) { }
 		inline PM_Rational(float a) : _val(a), _whv(0) { }
 		inline PM_Rational(double a) : _val(a), _whv(0) { }
@@ -583,6 +586,7 @@ inline PM_Rational fabs(const PM_Rational& a) {	if (a < 0) return -a; else retur
 #define TMESH_TO_INT(x) ((x).toInt())
 #define TMESH_TO_LOWER_DOUBLE(x) ((x).toLowerDouble())
 #define TMESH_TO_UPPER_DOUBLE(x) ((x).toUpperDouble())
+#define TMESH_IS_ZERO(x) (!(x).sign())
 
 #define TMESH_OMP_CLAUSES firstprivate(tmesh_thread_initializer) copyin(PM_Rational::use_rationals)
 
@@ -595,6 +599,7 @@ typedef double PM_Rational;
 #define TMESH_TO_INT(x) ((int)(x))
 #define TMESH_TO_LOWER_DOUBLE(x) (x)
 #define TMESH_TO_UPPER_DOUBLE(x) (x)
+#define TMESH_IS_ZERO(x) ((x)==0)
 
 #define TMESH_OMP_CLAUSES
 

@@ -33,9 +33,9 @@ namespace T_MESH
 
 // Default behaviour = FILTERED KERNEL
 #ifdef WIN32
-	bool PM_Rational::use_rationals = false;
+	char PM_Rational::use_rationals = 0;
 #else
-	thread_local bool PM_Rational::use_rationals = false;
+	thread_local char PM_Rational::use_rationals = 0;
 #endif
 
 	double to_upper_double(const tmesh_fraction& a)

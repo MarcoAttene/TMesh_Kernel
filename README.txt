@@ -19,7 +19,7 @@ TMesh_Kernel is at the base of a larger project called ImatiSTL.
 Citation policy
 --------------------
 You are free to use TMesh_Kernel according to the licensing terms specified at the end of this document.
-If you use TMesh_Kernel for research purposes and produces publications, please cite the following paper 
+If you use TMesh_Kernel for research purposes and produce publications, please cite the following paper 
 that describes the underlying hybrid paradigm:
 
 > Marco Attene. ImatiSTL - Fast and Reliable Mesh Processing with a Hybrid Kernel.

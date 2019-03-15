@@ -343,8 +343,9 @@ Point Point::linePlaneIntersection(const Point& p, const Point& q, const Point& 
 	coord a2133(a21*a33 - a23*a31);
 	coord a2132(a21*a32 - a22*a31);
 	coord den(a11*a2233 - a12*a2133 + a13*a2132);
-	if (den == 0) return INFINITE_POINT;
-	return p + ((q - p)*(((p.x - r.x)*(a2233)-(p.y - r.y)*(a2133)+(p.z - r.z)*(a2132)) / den));
+	if (TMESH_IS_ZERO(den)) return INFINITE_POINT;
+	coord num(((p.y - r.y)*(a2133) - (p.x - r.x)*(a2233) - (p.z - r.z)*(a2132))/den);
+	return Point(p.x + a11*num, p.y + a12*num, p.z + a13*num);
 }
 
 // Returns the point of intersection between the line for (v1,v2) and the plane for 'v0' with directional vector 'd'

@@ -55,7 +55,7 @@ namespace T_MESH
 			casted_double eps;
 			low = high = eps.d = a.get_d();
 			eps.u &= EXPONENT_MASK;
-			if (eps.u == EXPONENT_MASK) return; // Not a finite number (NaN of INFINITY)
+			if (eps.u == EXPONENT_MASK) return; // Not a finite number (NaN or INFINITY)
 			int s = sgn(a);
 			if (eps.u>MACH_DIFFEPS)
 			{
@@ -71,6 +71,8 @@ namespace T_MESH
 #endif
 		inline void init(const interval_number& b) { low = b.low; high = b.high; }
 		inline void init(const double b) { low = high = b; }
+
+		inline bool disjointWith(const interval_number& b) const { return (high < b.low || low > b.high); }
 
 		inline bool isExact() const { return (low == high); }
 		inline bool signIsReliable() const { return (low>0 || high <0 || (low==0 && high==0)); }
@@ -152,6 +154,7 @@ typedef enum
 
 
 // This is the number's DAG
+
 class lazy_num_dag
 {
 public:
@@ -268,17 +271,15 @@ private:
 
 class lazy_num
 {
-
-public:
 	std::shared_ptr<lazy_num_dag> root;
 
-	inline lazy_num() : root(NULL) { }
-	inline lazy_num(double d) : root(new lazy_num_dag(d)) { }
-	inline lazy_num(const tmesh_fraction& a) : root(new lazy_num_dag(a)) { }
+public:
+	inline lazy_num(double d) { root = std::make_shared<lazy_num_dag>(d); }
+	inline lazy_num(const tmesh_fraction& a) { root = std::make_shared<lazy_num_dag>(a); }
 	inline lazy_num(const lazy_num& n) : root(n.root) { }
-	inline lazy_num(const lazy_num& o1, const lazy_num& o2, const operation_id& op) : root(new lazy_num_dag(o1.root, o2.root, op)) { }
+	inline lazy_num(const lazy_num& o1, const lazy_num& o2, const operation_id& op) { root = std::make_shared<lazy_num_dag>(o1.root, o2.root, op); }
 
-	inline ~lazy_num() { }
+//	inline ~lazy_num() { }
 
 	inline lazy_num& operator=(const lazy_num& n) {	root = n.root; return *this; }
 
@@ -314,16 +315,17 @@ public:
 
 	inline bool operator==(const lazy_num& n) const
 	{
+		if (unprecise().disjointWith(n.unprecise())) return false;
 		if (isPrecise() && n.isPrecise()) return (unprecise().low == n.unprecise().low);
 		return (exact() == n.exact());
 	}
 
 	inline bool operator!=(const lazy_num& n) const
 	{
-		if (unprecise() < n.unprecise() || unprecise() > n.unprecise()) return true;
+		if (unprecise().disjointWith(n.unprecise())) return true;
+		if (isPrecise() && n.isPrecise()) return (unprecise().low != n.unprecise().low);
 		return (exact() != n.exact());
 	}
-
 
 	inline bool operator<(const lazy_num& n) const
 	{
@@ -352,8 +354,9 @@ public:
 		if (unprecise() < n.unprecise()) return false;
 		return (exact() >= n.exact());
 	}
-
 };
+
+
 
 #endif // USE_LAZY_KERNEL
 

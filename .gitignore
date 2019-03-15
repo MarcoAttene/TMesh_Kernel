@@ -9,8 +9,3 @@
 *.sdf
 
 *.suo
-
-build/msvc/obj
-
-build/msvc/obj64
-
