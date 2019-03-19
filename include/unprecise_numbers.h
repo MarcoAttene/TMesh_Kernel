@@ -166,18 +166,14 @@ public:
 	inline lazy_num_dag(double d) :
 		approximate_value(d),
 		exact_value(NULL),
-		operation(operation_id::none),
-		operand_1(NULL),
-		operand_2(NULL)
+		operation(operation_id::none)
 	{
 	}
 
 	inline lazy_num_dag(const tmesh_fraction& a) :
 		approximate_value(a),
 		exact_value(new tmesh_fraction(a)),
-		operation(operation_id::none),
-		operand_1(NULL),
-		operand_2(NULL)
+		operation(operation_id::none)
 	{
 	}
 
@@ -213,12 +209,6 @@ public:
 
 	inline const interval_number& unprecise() const { return approximate_value; }
 
-	inline const tmesh_fraction& exact()
-	{
-		if (!exact_value) compute_exact();
-		return *exact_value;
-	}
-
 	void print() const
 	{
 		switch (operation)
@@ -240,31 +230,59 @@ public:
 		}
 	}
 
+	// Here we have two possibilities:
+	// 1) Safe and lower memory footprint
+	// 2) Higher memory footprint but much faster concurrency (seems to be safe too)
+
+//#define TMESH_SAFE_LOW_MEM_FOOTPRINT
+
+	inline const tmesh_fraction& exact()
+	{
+#ifdef TMESH_SAFE_LOW_MEM_FOOTPRINT
+#pragma omp critical
+#endif
+		if (!exact_value) compute_exact();
+		return *exact_value;
+	}
+
 private:
 	void compute_exact()
 	{
+		tmesh_fraction *nv;
 		switch (operation)
 		{
 		case operation_id::sum:
-		exact_value = new tmesh_fraction(operand_1->exact() + operand_2->exact());
-		return;
+		nv = new tmesh_fraction(operand_1->exact() + operand_2->exact());
+		break;
 		case operation_id::difference:
-		exact_value = new tmesh_fraction(operand_1->exact() - operand_2->exact());
-		return;
+		nv = new tmesh_fraction(operand_1->exact() - operand_2->exact());
+		break;
 		case operation_id::product:
-		exact_value = new tmesh_fraction(operand_1->exact() * operand_2->exact());
-		return;
+		nv = new tmesh_fraction(operand_1->exact() * operand_2->exact());
+		break;
 		case operation_id::division:
-		exact_value = new tmesh_fraction(operand_1->exact() / operand_2->exact());
-		return;
+		nv = new tmesh_fraction(operand_1->exact() / operand_2->exact());
+		break;
 		case operation_id::none:
-		exact_value = new tmesh_fraction(approximate_value.low);
+		nv = new tmesh_fraction(approximate_value.low);
 		}
 
-		operand_1 = NULL;
-		operand_2 = NULL;
-		operation = operation_id::none;
-		if (!approximate_value.isExact()) approximate_value = interval_number(*exact_value);
+#ifndef TMESH_SAFE_LOW_MEM_FOOTPRINT
+#pragma omp critical
+#endif
+		{
+			if (exact_value == NULL)
+			{
+				exact_value = nv;
+#ifdef TMESH_SAFE_LOW_MEM_FOOTPRINT
+				if (operand_1.use_count()) operand_1.reset();
+				if (operand_2.use_count()) operand_2.reset();
+#endif
+				operation = operation_id::none;
+				if (!approximate_value.isExact()) approximate_value = interval_number(*exact_value);
+			}
+			else delete nv;
+		}
 	}
 };
 
@@ -279,7 +297,6 @@ public:
 	inline lazy_num(const lazy_num& n) : root(n.root) { }
 	inline lazy_num(const lazy_num& o1, const lazy_num& o2, const operation_id& op) { root = std::make_shared<lazy_num_dag>(o1.root, o2.root, op); }
 
-//	inline ~lazy_num() { }
 
 	inline lazy_num& operator=(const lazy_num& n) {	root = n.root; return *this; }
 
@@ -292,10 +309,10 @@ public:
 	inline lazy_num operator*(const lazy_num& n) const { return lazy_num(*this, n, operation_id::product); }
 	inline lazy_num operator/(const lazy_num& n) const { return lazy_num(*this, n, operation_id::division); }
 
-	inline lazy_num& operator+=(const lazy_num& n) { root = std::make_shared<lazy_num_dag>(root, n.root, operation_id::sum); return *this; } // This must be optimized (remove ref+unref for root)
-	inline lazy_num& operator-=(const lazy_num& n) { root = std::make_shared<lazy_num_dag>(root, n.root, operation_id::difference); return *this; } // This must be optimized (remove ref+unref for root)
-	inline lazy_num& operator*=(const lazy_num& n) { root = std::make_shared<lazy_num_dag>(root, n.root, operation_id::product); return *this; } // This must be optimized (remove ref+unref for root)
-	inline lazy_num& operator/=(const lazy_num& n) { root = std::make_shared<lazy_num_dag>(root, n.root, operation_id::division); return *this; } // This must be optimized (remove ref+unref for root)
+	inline lazy_num& operator+=(const lazy_num& n) { root = std::make_shared<lazy_num_dag>(root, n.root, operation_id::sum); return *this; } // Can this be optimized? (remove ref+unref for root)
+	inline lazy_num& operator-=(const lazy_num& n) { root = std::make_shared<lazy_num_dag>(root, n.root, operation_id::difference); return *this; }
+	inline lazy_num& operator*=(const lazy_num& n) { root = std::make_shared<lazy_num_dag>(root, n.root, operation_id::product); return *this; }
+	inline lazy_num& operator/=(const lazy_num& n) { root = std::make_shared<lazy_num_dag>(root, n.root, operation_id::division); return *this; }
 
 	void print() const { root->print(); }
 

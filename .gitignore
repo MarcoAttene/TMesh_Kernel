@@ -9,3 +9,15 @@
 *.sdf
 
 *.suo
+
+build
+
+lib64
+
+lib
+
+bin64
+
+bin
+
+src/test_kernel.cpp
