@@ -60,7 +60,7 @@ char mixedFilteredOrient2d(const PM_Rational& px, const PM_Rational& py, const P
 	}
 }
 
-char mixedFilteredOrient3d(const Point *d, const Point *a, const Point *b, const Point *c)
+char mixedFilteredOrient3d(const Point3c *d, const Point3c *a, const Point3c *b, const Point3c *c)
 {
 	unprecise_number det = unpreciseOrient3d<unprecise_number>(d, a, b, c);
 	if (det.signIsReliable()) return det.sign();
@@ -79,7 +79,7 @@ char mixedFilteredOrient3d(const Point *d, const Point *a, const Point *b, const
 	}
 }
 
-char mixedFilteredInsphere(const Point *pa, const Point *pb, const Point *pc, const Point *pd, const Point *pe)
+char mixedFilteredInsphere(const Point3c *pa, const Point3c *pb, const Point3c *pc, const Point3c *pd, const Point3c *pe)
 {
 	unprecise_number det = unpreciseInsphere<unprecise_number>(pa, pb, pc, pd, pe);
 	if (det.signIsReliable()) return det.sign();
@@ -97,7 +97,7 @@ char mixedFilteredInsphere(const Point *pa, const Point *pb, const Point *pc, co
 	}
 }
 
-char mixedFilteredInCircle3D(const Point *pa, const Point *pb, const Point *pc, const Point *pd)
+char mixedFilteredInCircle3D(const Point3c *pa, const Point3c *pb, const Point3c *pc, const Point3c *pd)
 {
 	unprecise_number det = unpreciseInCircle3D<unprecise_number>(pa, pb, pc, pd);
 	if (det.signIsReliable()) return det.sign();
@@ -135,7 +135,7 @@ char orient2D(const PM_Rational& px, const PM_Rational& py, const PM_Rational& q
 	else return mixedFilteredOrient2d(px, py, qx, qy, rx, ry);
 }
 
-char orient3D(const Point *t, const Point *a, const Point *b, const Point *c)
+char orient3D(const Point3c *t, const Point3c *a, const Point3c *b, const Point3c *c)
 {
 	if (a->x.isOfDoubleType() && a->y.isOfDoubleType() && a->z.isOfDoubleType() &&
 		t->x.isOfDoubleType() && t->y.isOfDoubleType() && t->z.isOfDoubleType() &&
@@ -158,7 +158,7 @@ char orient3D(const Point *t, const Point *a, const Point *b, const Point *c)
 	else return mixedFilteredOrient3d(t, a, b, c);
 }
 
-char inSphere3D(const Point *pa, const Point *pb, const Point *pc, const Point *pd, const Point *pe)
+char inSphere3D(const Point3c *pa, const Point3c *pb, const Point3c *pc, const Point3c *pd, const Point3c *pe)
 {
 	if (pa->x.isOfDoubleType() && pa->y.isOfDoubleType() && pa->z.isOfDoubleType() &&
 		pe->x.isOfDoubleType() && pe->y.isOfDoubleType() && pe->z.isOfDoubleType() &&
@@ -183,7 +183,7 @@ char inSphere3D(const Point *pa, const Point *pb, const Point *pc, const Point *
 }
 
 
-char inCircle3D(const Point *pa, const Point *pb, const Point *pc, const Point *pd)
+char inCircle3D(const Point3c *pa, const Point3c *pb, const Point3c *pc, const Point3c *pd)
 {
 	if (pa->x.isOfDoubleType() && pa->y.isOfDoubleType() && pa->z.isOfDoubleType() &&
 		pd->x.isOfDoubleType() && pd->y.isOfDoubleType() && pd->z.isOfDoubleType() &&
@@ -219,7 +219,7 @@ char orient2D(const PM_Rational& px, const PM_Rational& py, const PM_Rational& q
 	return (det > 0) ? (1) : ((det < 0) ? (-1) : (0));
 }
 
-char orient3D(const Point *t, const Point *a, const Point *b, const Point *c)
+char orient3D(const Point3c *t, const Point3c *a, const Point3c *b, const Point3c *c)
 {
 //	return TMESH_DETERMINANT3X3(t->x - c->x, t->y - c->y, t->z - c->z, a->x - c->x, a->y - c->y, a->z - c->z, b->x - c->x, b->y - c->y, b->z - c->z);
 
@@ -232,7 +232,7 @@ char orient3D(const Point *t, const Point *a, const Point *b, const Point *c)
 	return (det > 0) ? (1) : ((det < 0) ? (-1) : (0));
 }
 
-char inSphere3D(const Point *pa, const Point *pb, const Point *pc, const Point *pd, const Point *pe)
+char inSphere3D(const Point3c *pa, const Point3c *pb, const Point3c *pc, const Point3c *pd, const Point3c *pe)
 {
 	double p1[3], p2[3], p3[3], p4[3], p5[3];
 	p1[0] = TMESH_TO_DOUBLE(pa->x); p1[1] = TMESH_TO_DOUBLE(pa->y); p1[2] = TMESH_TO_DOUBLE(pa->z);
@@ -244,7 +244,7 @@ char inSphere3D(const Point *pa, const Point *pb, const Point *pc, const Point *
 	return (det > 0) ? (1) : ((det < 0) ? (-1) : (0));
 }
 
-char inCircle3D(const Point *pa, const Point *pb, const Point *pc, const Point *pd)
+char inCircle3D(const Point3c *pa, const Point3c *pb, const Point3c *pc, const Point3c *pd)
 {
 	double p1[3], p2[3], p3[3], p4[3];
 	p1[0] = TMESH_TO_DOUBLE(pa->x); p1[1] = TMESH_TO_DOUBLE(pa->y); p1[2] = TMESH_TO_DOUBLE(pa->z);

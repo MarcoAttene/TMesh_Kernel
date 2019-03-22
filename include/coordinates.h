@@ -341,7 +341,7 @@ namespace T_MESH
 typedef T_MESH::lazy_num EXACT_NT;
 #define EXACT_NT_FRACTION(x)	((x)->exact())
 #define EXACT_NT_SIGN(x) ((x).sign())
-#define EXACT_NT_TO_DOUBLE(x) ((x).exact().get_d())
+#define EXACT_NT_TO_DOUBLE(x) ((x).approx())
 #define EXACT_NT_DENOMINATOR(x) ((x)->exact().get_den())
 #define EXACT_NT_NUMERATOR(x) ((x)->exact().get_num())
 #define EXACT_NT_NAN	EXACT_NT(TMESH_NAN)
@@ -391,85 +391,63 @@ class PM_Rational
 		inline static void useRationals(bool v) { use_rationals = v; }
 
 	protected:
-		union PM_value {
-			double d;
-			EXACT_NT *p;
+		double _val_d;		// Double version. Always present.
+		EXACT_NT *_val_p;	// Exact version. If NULL, this number is meant to represent a double
 
-			inline PM_value(EXACT_NT *a) : p(a) {}
-			inline PM_value(double a) : d(a) {}
-			inline PM_value(float a) : d(a) {}
-			inline PM_value(int a) : d(a) {}
-			inline PM_value() {}
-		} _val;
-		char _whv;			// Which value type is stored here. 1=rational, 0=double
+		inline EXACT_NT& getVal() { return *_val_p; }	// Exact value
+		inline const EXACT_NT& getVal() const { return *_val_p; }
 
-		inline EXACT_NT& getVal() { return *_val.p; }
-		inline double& getDVal() { return _val.d; }
-
-		inline const EXACT_NT& getVal() const { return *_val.p; }
-		inline const double& getDVal() const { return _val.d; }
-
-		inline void S2DF() // Switch to double
-		{
-			EXACT_NT *ov = _val.p;
-			_val.d = EXACT_NT_TO_DOUBLE((*ov));
-			delete ov;
-			_whv = false;
-		}
-
-		inline void S2D() { if (_whv) S2DF(); } // Switch to double
+		inline double& getDVal() { return _val_d; }		// Double value
+		inline const double& getDVal() const { return _val_d; }
 		
-		inline void S2RF() // Switch to rational
-		{
-			_val.p = new EXACT_NT(_val.d);
-			_whv = true;
-		}
-
-		inline void S2R() { if (!_whv) S2RF(); } // Switch to rational
+		// Switch to rational
+		inline void S2RF() { _val_p = new EXACT_NT(_val_d); } // If known to be not already rational
+		inline void S2R() { if (!_val_p) S2RF(); } // With the check
 		
 
 	public:
-		inline PM_Rational() : _whv(0) {} // Undetermined double
-		inline PM_Rational(const EXACT_NT& a) : _val(new EXACT_NT(a)), _whv(1) { }
-		inline PM_Rational(float a) : _val(a), _whv(0) { }
-		inline PM_Rational(double a) : _val(a), _whv(0) { }
-		inline PM_Rational(int a) : _val(a), _whv(0) { }
-		inline PM_Rational(const PM_Rational& a) : _whv(a._whv) { if (_whv) _val.p = new EXACT_NT(*a._val.p); else _val.d = a._val.d; }
+		inline PM_Rational() : _val_p(NULL) {} // Undetermined double
+		inline PM_Rational(const EXACT_NT& a) : _val_d(EXACT_NT_TO_DOUBLE(a)), _val_p(new EXACT_NT(a)) { }
+		inline PM_Rational(float a) : _val_d(a), _val_p(NULL) { }
+		inline PM_Rational(double a) : _val_d(a), _val_p(NULL) { }
+		inline PM_Rational(int a) : _val_d(a), _val_p(NULL) { }
+		inline PM_Rational(const PM_Rational& a) : _val_d(a._val_d) { if (a._val_p) _val_p = new EXACT_NT(*a._val_p); else _val_p = NULL; }
 
-		inline ~PM_Rational() { if (_whv) delete (_val.p); }
+		inline ~PM_Rational() { if (_val_p) delete (_val_p); }
 
-		inline EXACT_NT toRational() const { return (_whv) ? (*_val.p) : (EXACT_NT(_val.d)); }
+		inline EXACT_NT toRational() const { return (_val_p) ? (*_val_p) : (EXACT_NT(_val_d)); }
 
-		inline bool isOfRationalType() const { return _whv; }
-		inline bool isOfDoubleType() const { return !_whv; }
+		inline bool isOfRationalType() const { return _val_p; }
+		inline bool isOfDoubleType() const { return !_val_p; }
 
-		inline int sign() const { return (_whv) ? (EXACT_NT_SIGN((*_val.p))) : ((_val.d > 0) - (_val.d < 0)); }
+		inline int sign() const { return (_val_p) ? (EXACT_NT_SIGN((*_val_p))) : ((_val_d > 0) - (_val_d < 0)); }
 
-		inline double toDouble() const { return ((_whv) ? (EXACT_NT_TO_DOUBLE((*_val.p))) : (_val.d)); }
+		inline double toDouble() const { return _val_d; }
 		inline int toInt() const { return int(toDouble()); }
 		inline float toFloat() const { return float(toDouble()); }
 
-		inline double toUpperDouble() const { return (_whv) ? (to_upper_double(EXACT_NT_FRACTION(_val.p))) : (_val.d); }
-		inline double toLowerDouble() const { return (_whv) ? (to_lower_double(EXACT_NT_FRACTION(_val.p))) : (_val.d); }
+		inline double toNearestDouble() const { return (_val_p) ? ((EXACT_NT_FRACTION(_val_p)).get_d()) : (_val_d); }
+		inline double toUpperDouble() const { return (_val_p) ? (to_upper_double(EXACT_NT_FRACTION(_val_p))) : (_val_d); }
+		inline double toLowerDouble() const { return (_val_p) ? (to_lower_double(EXACT_NT_FRACTION(_val_p))) : (_val_d); }
 
 		inline void operator+=(const PM_Rational& a)
 		{
-			if (use_rationals) { S2R(); (*(_val.p)) += a.toRational(); } else { S2D(); _val.d += a.toDouble(); }
+			if (use_rationals) { S2R(); (*(_val_p)) += a.toRational(); } else { _val_d += a.toDouble(); }
 		}
 
 		inline void operator-=(const PM_Rational& a)
 		{
-			if (use_rationals) { S2R(); (*(_val.p)) -= a.toRational(); } else { S2D(); _val.d -= a.toDouble(); }
+			if (use_rationals) { S2R(); (*(_val_p)) -= a.toRational(); } else { _val_d -= a.toDouble(); }
 		}
 
 		inline void operator*=(const PM_Rational& a)
 		{
-			if (use_rationals) { S2R(); (*(_val.p)) *= a.toRational(); } else { S2D(); _val.d *= a.toDouble(); }
+			if (use_rationals) { S2R(); (*(_val_p)) *= a.toRational(); } else { _val_d *= a.toDouble(); }
 		}
 
 		inline void operator/=(const PM_Rational& a)
 		{
-			if (use_rationals) { S2R(); (*(_val.p)) /= a.toRational(); } else { S2D(); _val.d /= a.toDouble(); }
+			if (use_rationals) { S2R(); (*(_val_p)) /= a.toRational(); } else { _val_d /= a.toDouble(); }
 		}
 
 		inline PM_Rational operator+(const PM_Rational& a) const
@@ -498,64 +476,70 @@ class PM_Rational
 
 		inline bool operator==(const PM_Rational& a) const
 		{
-			if (_whv || a._whv) return (toRational() == a.toRational());
-			else return (_val.d == a._val.d);
+			if (_val_p || a._val_p) return (toRational() == a.toRational());
+			else return (_val_d == a._val_d);
 		}
 
 		inline bool operator!=(const PM_Rational& a) const
 		{
-			if (_whv || a._whv) return (toRational() != a.toRational());
-			else return (_val.d != a._val.d);
+			if (_val_p || a._val_p) return (toRational() != a.toRational());
+			else return (_val_d != a._val_d);
 		}
 
 		inline PM_Rational& operator=(const PM_Rational& a)
 		{
-			if (this == (&a)) return *this;
-			if (_whv) delete _val.p;
-			if ((_whv = a._whv)) _val.p = new EXACT_NT(*a._val.p); else _val.d = a._val.d;
+			if (_val_p || a._val_p)
+			{
+				if (this == (&a)) return *this;
+				if (_val_p) delete _val_p; 
+				if (a._val_p) _val_p = new EXACT_NT(*a._val_p);
+				else _val_p = NULL;
+			}
+			_val_d = a._val_d;
 			return *this;
 		}
 
 		inline void setFromRational(const EXACT_NT& a)
 		{
-			if (_whv) delete _val.p;
-			_whv = 1; _val.p = new EXACT_NT(a);
+			if (_val_p) delete _val_p;
+			_val_p = new EXACT_NT(a);
+			_val_d = EXACT_NT_TO_DOUBLE(a);
 		}
 
 		inline void setFromDouble(double a)
 		{
-			if (_whv) delete _val.p;
-			_whv = 0; _val.d = a;
+			if (_val_p) { delete _val_p; _val_p = NULL; }
+			_val_d = a;
 		}
 
 		inline bool operator<(const PM_Rational& a) const
 		{
-			if (_whv || a._whv) return (toRational() < a.toRational());
-			else return (_val.d < a._val.d);
+			if (_val_p || a._val_p) return (toRational() < a.toRational());
+			else return (_val_d < a._val_d);
 		}
 
 		inline bool operator>(const PM_Rational& a) const
 		{
-			if (_whv || a._whv) return (toRational() > a.toRational());
-			else return (_val.d > a._val.d);
+			if (_val_p || a._val_p) return (toRational() > a.toRational());
+			else return (_val_d > a._val_d);
 		}
 
 		inline bool operator<=(const PM_Rational& a) const
 		{
-			if (_whv || a._whv) return (toRational() <= a.toRational());
-			else return (_val.d <= a._val.d);
+			if (_val_p || a._val_p) return (toRational() <= a.toRational());
+			else return (_val_d <= a._val_d);
 		}
 
 		inline bool operator>=(const PM_Rational& a) const
 		{
-			if (_whv || a._whv) return (toRational() >= a.toRational());
-			else return (_val.d >= a._val.d);
+			if (_val_p || a._val_p) return (toRational() >= a.toRational());
+			else return (_val_d >= a._val_d);
 		}
 
 		friend char orient2D(const PM_Rational& px, const PM_Rational& py, const PM_Rational& qx, const PM_Rational& qy, const PM_Rational& rx, const PM_Rational& ry);
-		friend char orient3D(const class Point *t, const class Point *a, const class Point *b, const class Point *c);
-		friend char inSphere3D(const class Point *pa, const class Point *pb, const class Point *pc, const class Point *pd, const class Point *pe);
-		friend char inCircle3D(const class Point *pa, const class Point *pb, const class Point *pc, const class Point *pd);
+		friend char orient3D(const class Point3c *t, const class Point3c *a, const class Point3c *b, const class Point3c *c);
+		friend char inSphere3D(const class Point3c *pa, const class Point3c *pb, const class Point3c *pc, const class Point3c *pd, const class Point3c *pe);
+		friend char inCircle3D(const class Point3c *pa, const class Point3c *pb, const class Point3c *pc, const class Point3c *pd);
 		friend PM_Rational operator-(const PM_Rational& a);
 		friend PM_Rational ceil(const PM_Rational& a);
 		friend PM_Rational floor(const PM_Rational& a);
@@ -570,8 +554,8 @@ class PM_Rational
 
 inline PM_Rational operator-(const PM_Rational& a)
 {
-	if (a.isOfRationalType()) return PM_Rational(-(*(a._val.p)));
-	else return PM_Rational(-a._val.d);
+	if (a.isOfRationalType()) return PM_Rational(-(*(a._val_p)));
+	else return PM_Rational(-a._val_d);
 }
 
 PM_Rational ceil(const PM_Rational& a);
@@ -584,6 +568,7 @@ inline PM_Rational fabs(const PM_Rational& a) {	if (a < 0) return -a; else retur
 #define TMESH_TO_DOUBLE(x) ((x).toDouble())
 #define TMESH_TO_FLOAT(x) ((x).toFloat())
 #define TMESH_TO_INT(x) ((x).toInt())
+#define TMESH_TO_NEAREST_DOUBLE(x) ((x).toNearestDouble())
 #define TMESH_TO_LOWER_DOUBLE(x) ((x).toLowerDouble())
 #define TMESH_TO_UPPER_DOUBLE(x) ((x).toUpperDouble())
 #define TMESH_IS_ZERO(x) (!(x).sign())
@@ -597,6 +582,7 @@ typedef double PM_Rational;
 #define TMESH_TO_DOUBLE(x) (x)
 #define TMESH_TO_FLOAT(x) ((float)(x))
 #define TMESH_TO_INT(x) ((int)(x))
+#define TMESH_TO_NEAREST_DOUBLE(x) (x)
 #define TMESH_TO_LOWER_DOUBLE(x) (x)
 #define TMESH_TO_UPPER_DOUBLE(x) (x)
 #define TMESH_IS_ZERO(x) ((x)==0)

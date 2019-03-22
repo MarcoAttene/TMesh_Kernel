@@ -28,7 +28,7 @@
 /*  Arithmetic Expansion                                                     */
 /*    Code in this file is freely inspired from ideas first presented        */
 /*    in Jonathan Richard Shewchuk's paper "Adaptive Precision Floating-     */
-/*    Point Arithmetic and Fast Robust Geometric Predicates."  Discrete &    */
+/*    Point3c Arithmetic and Fast Robust Geometric Predicates."  Discrete &    */
 /*    Computational Geometry (1998).                                         */
 /*                                                                           */
 /*****************************************************************************/

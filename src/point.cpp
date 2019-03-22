@@ -31,12 +31,12 @@
 namespace T_MESH
 {
 
-const Point INFINITE_POINT(TMESH_INFINITY, TMESH_INFINITY, TMESH_INFINITY);
+const Point3c INFINITE_POINT(TMESH_INFINITY, TMESH_INFINITY, TMESH_INFINITY);
 
-//////// Lexicographic Point comparison //////////
+//////// Lexicographic Point3c comparison //////////
 
 // This can be used with std::sort()
-bool Point::operator<(const Point& s) const
+bool Point3c::operator<(const Point3c& s) const
 {
 	if (x<s.x) return true; else if (x>s.x) return false;
 	if (y<s.y) return true; else if (y>s.y) return false;
@@ -46,12 +46,12 @@ bool Point::operator<(const Point& s) const
 /////////// Solution of a linear system 3 x 3    //////////
 ///// System Ax = d, where A = (a,b,c) rows, d = this /////
 
-Point Point::linearSystem(const Point& a, const Point& b, const Point& c) const
+Point3c Point3c::linearSystem(const Point3c& a, const Point3c& b, const Point3c& c) const
 {
 	// Optimize - need to avoid redoing same multiplications
 	coord det_A = TMESH_DETERMINANT3X3(a.x, a.y, a.z, b.x, b.y, b.z, c.x, c.y, c.z);
 	if (det_A == 0.0) return INFINITE_POINT;
-	return Point(
+	return Point3c(
 		TMESH_DETERMINANT3X3(x, a.y, a.z, y, b.y, b.z, z, c.y, c.z) / det_A,
 		TMESH_DETERMINANT3X3(a.x, x, a.z, b.x, y, b.z, c.x, z, c.z) / det_A,
 		TMESH_DETERMINANT3X3(a.x, a.y, x, b.x, b.y, y, c.x, c.y, z) / det_A
@@ -60,9 +60,9 @@ Point Point::linearSystem(const Point& a, const Point& b, const Point& c) const
 
 ////////////// Projection on the line passing through A and B ///////////
 
-Point Point::projection(const Point *A, const Point *B) const
+Point3c Point3c::projection(const Point3c *A, const Point3c *B) const
 {
-	Point BA((*B) - (*A));
+	Point3c BA((*B) - (*A));
 	coord l = BA.squaredLength();
 	if (l == 0.0) return INFINITE_POINT;
 
@@ -72,17 +72,17 @@ Point Point::projection(const Point *A, const Point *B) const
 
 ////////////// Projection on the plane passing through A, B and C ///////////
 
-Point Point::projection(const Point *A, const Point *B, const Point *C) const
+Point3c Point3c::projection(const Point3c *A, const Point3c *B, const Point3c *C) const
 {
-	Point BA((*B) - (*A)), CA((*C) - (*A));
-	Point plane_vec(BA&CA);
-	Point p2((*this) + (plane_vec));
-	return Point::linePlaneIntersection(*this, p2, *A, *B, *C);
+	Point3c BA((*B) - (*A)), CA((*C) - (*A));
+	Point3c plane_vec(BA&CA);
+	Point3c p2((*this) + (plane_vec));
+	return Point3c::linePlaneIntersection(*this, p2, *A, *B, *C);
 }
 
 ////////////// Alignment check /////////////
 
-bool Point::exactMisalignment(const Point *A, const Point *B) const
+bool Point3c::exactMisalignment(const Point3c *A, const Point3c *B) const
 {
 	if (orient2D(x, y, A->x, A->y, B->x, B->y) != 0) return true;
 	if (orient2D(y, z, A->y, A->z, B->y, B->z) != 0) return true;
@@ -91,7 +91,7 @@ bool Point::exactMisalignment(const Point *A, const Point *B) const
 	return false;
 }
 
-bool Point::exactSameSideOnPlane(const Point *Q, const Point *A, const Point *B) const
+bool Point3c::exactSameSideOnPlane(const Point3c *Q, const Point3c *A, const Point3c *B) const
 {
 		char o1, o2;
 
@@ -118,7 +118,7 @@ bool Point::exactSameSideOnPlane(const Point *Q, const Point *A, const Point *B)
 //////////////////////////////////////////////////////////////////
 
 // Returns true if 'p' is a point of the segment v1-v2 (endpoints excluded)
-bool Point::pointInInnerSegment(const Point *p, const Point *v1, const Point *v2)
+bool Point3c::pointInInnerSegment(const Point3c *p, const Point3c *v1, const Point3c *v2)
 {
 	if (!p->exactMisalignment(v1, v2)) // Segment and point aligned
 	{
@@ -133,14 +133,14 @@ bool Point::pointInInnerSegment(const Point *p, const Point *v1, const Point *v2
 }
 
 // Returns true if 'p' is a point of the segment v1-v2 (endpoints included)
-bool Point::pointInSegment(const Point *p, const Point *v1, const Point *v2)
+bool Point3c::pointInSegment(const Point3c *p, const Point3c *v1, const Point3c *v2)
 {
-	return ((*p) == (*(v1)) || (*p) == (*(v2)) || Point::pointInInnerSegment(p, v1, v2));
+	return ((*p) == (*(v1)) || (*p) == (*(v2)) || Point3c::pointInInnerSegment(p, v1, v2));
 }
 
 // Returns true if the coplanar point 'p' is in the inner area of 't'.
 // Undetermined if p and t are not coplanar.
-bool Point::pointInInnerTriangle(const Point *p, const Point *v1, const Point *v2, const Point *v3)
+bool Point3c::pointInInnerTriangle(const Point3c *p, const Point3c *v1, const Point3c *v2, const Point3c *v3)
 {
 	char o1, o2, oo2, oo4, oo6;
 
@@ -185,12 +185,12 @@ bool Point::pointInInnerTriangle(const Point *p, const Point *v1, const Point *v
 
 // Returns true if the coplanar point 'p' is either in the inner area of
 // 't' or on its border. Undetermined if p and t are not coplanar.
-bool Point::pointInTriangle(const Point *p, const Point *v1, const Point *v2, const Point *v3)
+bool Point3c::pointInTriangle(const Point3c *p, const Point3c *v1, const Point3c *v2, const Point3c *v3)
 {
-	if (Point::pointInSegment(p, v1, v2)) return true;
-	else if (Point::pointInSegment(p, v2, v3)) return true;
-	else if (Point::pointInSegment(p, v3, v1)) return true;
-	else return Point::pointInInnerTriangle(p, v1, v2, v3);
+	if (Point3c::pointInSegment(p, v1, v2)) return true;
+	else if (Point3c::pointInSegment(p, v2, v3)) return true;
+	else if (Point3c::pointInSegment(p, v3, v1)) return true;
+	else return Point3c::pointInInnerTriangle(p, v1, v2, v3);
 }
 
 
@@ -202,7 +202,7 @@ bool Point::pointInTriangle(const Point *p, const Point *v1, const Point *v2, co
 
 // Returns true if the interior of (p1-p2) properly intersects the interior of (sp1-sp2).
 // Collinear overlapping segments are not considered to be properly intersecting.
-bool Point::innerSegmentsCross(const Point& p1, const Point& p2, const Point& sp1, const Point& sp2)
+bool Point3c::innerSegmentsCross(const Point3c& p1, const Point3c& p2, const Point3c& sp1, const Point3c& sp2)
 {
 	if (p1 == sp1 || p1 == sp2 || p2 == sp1 || p2 == sp2) return false;	// Endpoints cannot coincide
 	if (p1.exactOrientation(&p2, &sp1, &sp2) != 0) return false;	// Must be coplanar
@@ -219,12 +219,12 @@ bool Point::innerSegmentsCross(const Point& p1, const Point& p2, const Point& sp
 
 // true if (p1-p2) properly intersects (sp1-sp2) at any point (endpoints included).
 // Collinear overlapping segments are not considered to be properly intersecting.
-bool Point::segmentsIntersect(const Point *p1, const Point *p2, const Point *sp1, const Point *sp2)
+bool Point3c::segmentsIntersect(const Point3c *p1, const Point3c *p2, const Point3c *sp1, const Point3c *sp2)
 {
 	return (p1->exactOrientation(p2, sp1, sp2) == 0 && !p1->exactSameSideOnPlane(p2, sp1, sp2) && !sp1->exactSameSideOnPlane(sp2, p1, p2));
 }
 
-bool Point::segmentProperlyIntersectsTriangle(const Point *s1, const Point *s2, const Point *v1, const Point *v2, const Point *v3)
+bool Point3c::segmentProperlyIntersectsTriangle(const Point3c *s1, const Point3c *s2, const Point3c *v1, const Point3c *v2, const Point3c *v3)
 {
 	char o1, o2, o3;
 
@@ -255,7 +255,7 @@ bool Point::segmentProperlyIntersectsTriangle(const Point *s1, const Point *s2, 
 	return true;
 }
 
-bool Point::segmentIntersectsTriangle(const Point *s1, const Point *s2, const Point *v1, const Point *v2, const Point *v3)
+bool Point3c::segmentIntersectsTriangle(const Point3c *s1, const Point3c *s2, const Point3c *v1, const Point3c *v2, const Point3c *v3)
 {
 	char o1, o2, o3;
 
@@ -279,7 +279,7 @@ bool Point::segmentIntersectsTriangle(const Point *s1, const Point *s2, const Po
 		if (!s1->exactSameSideOnPlane(s2, v1, v2) && !v1->exactSameSideOnPlane(v2, s1, s2)) return true;
 		if (!s1->exactSameSideOnPlane(s2, v2, v3) && !v2->exactSameSideOnPlane(v3, s1, s2)) return true;
 		if (!s1->exactSameSideOnPlane(s2, v3, v1) && !v3->exactSameSideOnPlane(v1, s1, s2)) return true;
-		if (Point::pointInInnerTriangle(s1, v1, v2, v3) && Point::pointInInnerTriangle(s2, v1, v2, v3)) return true;
+		if (Point3c::pointInInnerTriangle(s1, v1, v2, v3) && Point3c::pointInInnerTriangle(s2, v1, v2, v3)) return true;
 		return false;
 	}
 
@@ -293,7 +293,7 @@ bool Point::segmentIntersectsTriangle(const Point *s1, const Point *s2, const Po
 	return true;
 }
 
-bool Point::segmentIntersectsTriangle(const Point *s1, const Point *s2, const Point *v1, const Point *v2, const Point *v3, const coord& oo1, const coord& oo2)
+bool Point3c::segmentIntersectsTriangle(const Point3c *s1, const Point3c *s2, const Point3c *v1, const Point3c *v2, const Point3c *v3, const coord& oo1, const coord& oo2)
 {
 	// In this case the fast reject by bounding box appears to be a disadvantage ...
 	if (oo1 == 0 && oo2 == 0)
@@ -301,7 +301,7 @@ bool Point::segmentIntersectsTriangle(const Point *s1, const Point *s2, const Po
 		if (!s1->exactSameSideOnPlane(s2, v1, v2) && !v1->exactSameSideOnPlane(v2, s1, s2)) return true;
 		if (!s1->exactSameSideOnPlane(s2, v2, v3) && !v2->exactSameSideOnPlane(v3, s1, s2)) return true;
 		if (!s1->exactSameSideOnPlane(s2, v3, v1) && !v3->exactSameSideOnPlane(v1, s1, s2)) return true;
-		if (Point::pointInInnerTriangle(s1, v1, v2, v3) && Point::pointInInnerTriangle(s2, v1, v2, v3)) return true;
+		if (Point3c::pointInInnerTriangle(s1, v1, v2, v3) && Point3c::pointInInnerTriangle(s2, v1, v2, v3)) return true;
 		return false;
 	}
 
@@ -320,12 +320,12 @@ bool Point::segmentIntersectsTriangle(const Point *s1, const Point *s2, const Po
 
 // Returns the point of intersection between the two lines defined by (p,q) and (r,s) respectively
 // Return INFINITE_POINT is lines do not intersect or if p==q or r==s
-Point Point::lineLineIntersection(const Point& p, const Point& q, const Point& r, const Point& s)
+Point3c Point3c::lineLineIntersection(const Point3c& p, const Point3c& q, const Point3c& r, const Point3c& s)
 {
-	Point da(q - p);
-	Point db(s - r);
-	Point dc(r - p);
-	Point dab(da&db);
+	Point3c da(q - p);
+	Point3c db(s - r);
+	Point3c dc(r - p);
+	Point3c dab(da&db);
 
 	if (dab.isNull()) return INFINITE_POINT; // parallel
 	if ((dc*dab) != 0.0) return INFINITE_POINT; // skew
@@ -335,7 +335,7 @@ Point Point::lineLineIntersection(const Point& p, const Point& q, const Point& r
 
 // Returns the point of intersection between the line for (p,q) and the plane for (r,s,t)
 // Returns INFINITE_POINT in case of parallelism
-Point Point::linePlaneIntersection(const Point& p, const Point& q, const Point& r, const Point& s, const Point& t)
+Point3c Point3c::linePlaneIntersection(const Point3c& p, const Point3c& q, const Point3c& r, const Point3c& s, const Point3c& t)
 {
 	coord a11(p.x - q.x), a12(p.y - q.y), a13(p.z - q.z);
 	coord a21(s.x - r.x), a22(s.y - r.y), a23(s.z - r.z);
@@ -346,30 +346,30 @@ Point Point::linePlaneIntersection(const Point& p, const Point& q, const Point& 
 	coord den(a11*a2233 - a12*a2133 + a13*a2132);
 	if (TMESH_IS_ZERO(den)) return INFINITE_POINT;
 	coord num(((p.y - r.y)*(a2133) - (p.x - r.x)*(a2233) - (p.z - r.z)*(a2132))/den);
-	return Point(p.x + a11*num, p.y + a12*num, p.z + a13*num);
+	return Point3c(p.x + a11*num, p.y + a12*num, p.z + a13*num);
 }
 
 // Returns the point of intersection between the line for (v1,v2) and the plane for 'v0' with directional vector 'd'
 // Returns INFINITE_POINT in case of parallelism
-Point Point::linePlaneIntersection(const Point& v1, const Point& v2, const Point& v0, const Point& d)
+Point3c Point3c::linePlaneIntersection(const Point3c& v1, const Point3c& v2, const Point3c& v0, const Point3c& d)
 {
-	Point v21(v2 - v1);
+	Point3c v21(v2 - v1);
 	coord den = d*v21;
 	if (den == 0) return INFINITE_POINT;
 	else return v1 + (v21*((d*(v0 - v1)) / den));
 }
 
 
-coord Point::squaredDistanceFromLine(const Point *x1, const Point *x2) const
+coord Point3c::squaredDistanceFromLine(const Point3c *x1, const Point3c *x2) const
 {
-	Point x21((*x2) - (*x1));
+	Point3c x21((*x2) - (*x1));
 	if (x21.isNull()) return TMESH_INFINITY;
-	Point x10((*x1) - (*this));
+	Point3c x10((*x1) - (*this));
 	x10 = x21&x10;
 	return (x10*x10) / (x21*x21);
 }
 
-coord Point::squaredDistanceFromPlane(const Point& dirver, const Point& app_point) const
+coord Point3c::squaredDistanceFromPlane(const Point3c& dirver, const Point3c& app_point) const
 {
 	coord CA2 = dirver*dirver;
 
@@ -383,11 +383,11 @@ coord Point::squaredDistanceFromPlane(const Point& dirver, const Point& app_poin
 //// Computes the closest points of the two lines 'this'-v1 and p1-p2  ////
 //// Returns FALSE if the lines are parallel.                          ////
 
-bool Point::closestPoints(const Point *v1, const Point *p1, const Point *p2, Point *ptOnThis, Point *ptOnLine2) const
+bool Point3c::closestPoints(const Point3c *v1, const Point3c *p1, const Point3c *p2, Point3c *ptOnThis, Point3c *ptOnLine2) const
 {
-	Point u = (*v1) - (*this);
+	Point3c u = (*v1) - (*this);
 	if (u.isNull()) return false;
-	Point v = (*p2) - (*p1);
+	Point3c v = (*p2) - (*p1);
 	if (v.isNull()) return false;
 
 	coord A = u*u;
@@ -396,7 +396,7 @@ bool Point::closestPoints(const Point *v1, const Point *p1, const Point *p2, Poi
 	coord denom = (A*C) - (B*B);
 	if (denom == 0.0) return false; // Lines are parallel
 
-	Point w0 = (*this) - (*p1);
+	Point3c w0 = (*this) - (*p1);
 	coord D = u*w0;
 	coord E = v*w0;
 	coord s = (B*E - C*D) / denom;
@@ -414,7 +414,7 @@ bool Point::closestPoints(const Point *v1, const Point *p1, const Point *p2, Poi
 
 //////////////// Normalization /////////////////////////
 
-Point& Point::normalize()
+Point3c& Point3c::normalize()
 {
  coord l = length();
  if (l == 0) TMesh::error("normalize : Trying to normalize a null vector !\n");
@@ -423,10 +423,10 @@ Point& Point::normalize()
 }
 
 
-//////////////////// Point rotation ////////////////////
+//////////////////// Point3c rotation ////////////////////
 /////////// 'ang' radians CCW around 'axis' ////////////
 
-void Point::rotate(const Point& a, const double& ang)
+void Point3c::rotate(const Point3c& a, const double& ang)
 {
  double l, q[4], m[3][3];
  if ((l = a.length())==0.0) return;
@@ -458,7 +458,7 @@ void Point::rotate(const Point& a, const double& ang)
 
 /////////// Distance from the line passing through A and B ////////
 
-double Point::distanceFromLine(const Point *A, const Point *B) const
+double Point3c::distanceFromLine(const Point3c *A, const Point3c *B) const
 {
 	return sqrt(TMESH_TO_DOUBLE(squaredDistanceFromLine(A, B)));
 }
@@ -468,15 +468,15 @@ double Point::distanceFromLine(const Point *A, const Point *B) const
 //// 'cc' is initialized as the point of the line whose     ////
 //// distance from 'this' is minimum.                       ////
 
-double Point::distanceFromLine(const Point *A, const Point *B, Point *cc) const
+double Point3c::distanceFromLine(const Point3c *A, const Point3c *B, Point3c *cc) const
 {
- Point AP((*A)-(*this));
+ Point3c AP((*A)-(*this));
  if (AP.isNull()) { cc->setValue(A); return 0.0; }
  
- Point BP((*B) - (*this));
+ Point3c BP((*B) - (*this));
  if (BP.isNull()) { cc->setValue(B); return 0.0; }
 
- Point AB((*A) - (*B));
+ Point3c AB((*A) - (*B));
  coord t = (AB*AB);
  if (t == 0.0) TMESH_INFINITY;
  else t = (AP*AB)/(-t);
@@ -488,11 +488,11 @@ double Point::distanceFromLine(const Point *A, const Point *B, Point *cc) const
 
 ////////////// Distance from a segment /////////////////
 
-double Point::distanceFromEdge(const Point *A, const Point *B) const
+double Point3c::distanceFromEdge(const Point3c *A, const Point3c *B) const
 {
-	Point AP((*A) - (*this));
-	Point BP((*B) - (*this));
-	Point AB((*A) - (*B));
+	Point3c AP((*A) - (*this));
+	Point3c BP((*B) - (*this));
+	Point3c AB((*A) - (*B));
 
 	if (AB*AP <= 0) return AP.length();
 	if (AB*BP >= 0) return BP.length();
@@ -504,11 +504,11 @@ double Point::distanceFromEdge(const Point *A, const Point *B) const
 //// 'cc' is initialized as the point of the segment whose     ////
 //// distance from 'this' is minimum.                          ////
 
-double Point::distanceFromEdge(const Point *A, const Point *B, Point *cc) const
+double Point3c::distanceFromEdge(const Point3c *A, const Point3c *B, Point3c *cc) const
 {
-	Point AP((*A) - (*this));
-	Point BP((*B) - (*this));
-	Point AB((*A) - (*B));
+	Point3c AP((*A) - (*this));
+	Point3c BP((*B) - (*this));
+	Point3c AB((*A) - (*B));
 
 	if (AB*AP <= 0) { cc->setValue(A); return AP.length(); }
 	if (AB*BP >= 0) { cc->setValue(B); return BP.length(); }
@@ -518,16 +518,16 @@ double Point::distanceFromEdge(const Point *A, const Point *B, Point *cc) const
 
 /////////// Distance of two straight lines ///////////////
 
-double Point::distanceLineLine(const Point *A, const Point *A1, const Point *B1) const
+double Point3c::distanceLineLine(const Point3c *A, const Point3c *A1, const Point3c *B1) const
 {
-	Point uu1 = ((*this) - (*A))&((*A1) - (*B1));
+	Point3c uu1 = ((*this) - (*A))&((*A1) - (*B1));
 	coord nom = ((*A) - (*A1))*(uu1);
 	return sqrt(TMESH_TO_DOUBLE((nom*nom) / uu1.squaredLength()));
 }
 
 ///////////////// Angle between two vectors ///////////////
 
-double Point::getAngle(const Point& p) const
+double Point3c::getAngle(const Point3c& p) const
 {
 	return atan2(((*this)&p).length(), TMESH_TO_DOUBLE(((*this)*p)));
 }
@@ -540,12 +540,12 @@ double Point::getAngle(const Point& p) const
 // This can be used with jqsort
 int xyzCompare(const void *a, const void *b)
 {
-	if (((((Point *)a)->x < ((Point *)b)->x))) return -1;
-	if (((((Point *)a)->x >((Point *)b)->x))) return 1;
-	if (((((Point *)a)->y < ((Point *)b)->y))) return -1;
-	if (((((Point *)a)->y >((Point *)b)->y))) return 1;
-	if (((((Point *)a)->z < ((Point *)b)->z))) return -1;
-	if (((((Point *)a)->z >((Point *)b)->z))) return 1;
+	if (((((Point3c *)a)->x < ((Point3c *)b)->x))) return -1;
+	if (((((Point3c *)a)->x >((Point3c *)b)->x))) return 1;
+	if (((((Point3c *)a)->y < ((Point3c *)b)->y))) return -1;
+	if (((((Point3c *)a)->y >((Point3c *)b)->y))) return 1;
+	if (((((Point3c *)a)->z < ((Point3c *)b)->z))) return -1;
+	if (((((Point3c *)a)->z >((Point3c *)b)->z))) return 1;
 
 	return 0;
 }

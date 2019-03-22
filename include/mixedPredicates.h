@@ -91,7 +91,7 @@ namespace T_MESH
 	}
 
 	template <class T>
-	inline T unpreciseOrient3d(const Point *d, const Point *a, const Point *b, const Point *c)
+	inline T unpreciseOrient3d(const Point3c *d, const Point3c *a, const Point3c *b, const Point3c *c)
 	{
 		T a11(d->x), a12(d->y), a13(d->z);
 		T a21(a->x), a22(a->y), a23(a->z);
@@ -140,7 +140,7 @@ namespace T_MESH
 	}
 
 	template <class T>
-	inline T unpreciseInsphere(const Point *pa, const Point *pb, const Point *pc, const Point *pd, const Point *pe)
+	inline T unpreciseInsphere(const Point3c *pa, const Point3c *pb, const Point3c *pc, const Point3c *pd, const Point3c *pe)
 	{
 		T pex(pe->x), pey(pe->y), pez(pe->z);
 		T aex(pa->x), aey(pa->y), aez(pa->z);
@@ -186,7 +186,7 @@ namespace T_MESH
 	}
 
 	template <class T>
-	inline T unpreciseInCircle3D(const Point *pa, const Point *pb, const Point *pc, const Point *pd)
+	inline T unpreciseInCircle3D(const Point3c *pa, const Point3c *pb, const Point3c *pc, const Point3c *pd)
 	{
 		T aex(pa->x), aey(pa->y), aez(pa->z);
 		T bex(pb->x), bey(pb->y), bez(pb->z);
@@ -214,7 +214,7 @@ namespace T_MESH
 		return unpreciseOrient2d_T<tmesh_fraction>(qpx, qpy, qqx, qqy, qrx, qry);
 	}
 
-	inline tmesh_fraction preciseOrient3d(const Point *d, const Point *a, const Point *b, const Point *c)
+	inline tmesh_fraction preciseOrient3d(const Point3c *d, const Point3c *a, const Point3c *b, const Point3c *c)
 	{
 		tmesh_fraction a11(d->x.toRational().exact()), a12(d->y.toRational().exact()), a13(d->z.toRational().exact());
 		tmesh_fraction a21(a->x.toRational().exact()), a22(a->y.toRational().exact()), a23(a->z.toRational().exact());
@@ -223,7 +223,7 @@ namespace T_MESH
 		return unpreciseOrient3d_T<tmesh_fraction>(a11, a12, a13, a21, a22, a23, a31, a32, a33, cx, cy, cz);
 	}
 
-	inline tmesh_fraction preciseInsphere(const Point *pa, const Point *pb, const Point *pc, const Point *pd, const Point *pe)
+	inline tmesh_fraction preciseInsphere(const Point3c *pa, const Point3c *pb, const Point3c *pc, const Point3c *pd, const Point3c *pe)
 	{
 		tmesh_fraction pex(pe->x.toRational().exact()), pey(pe->y.toRational().exact()), pez(pe->z.toRational().exact());
 		tmesh_fraction aex(pa->x.toRational().exact()), aey(pa->y.toRational().exact()), aez(pa->z.toRational().exact());
@@ -233,7 +233,7 @@ namespace T_MESH
 		return unpreciseInsphere_T<tmesh_fraction>(pex, pey, pez, aex, aey, aez, bex, bey, bez, cex, cey, cez, dex, dey, dez);
 	}
 
-	inline tmesh_fraction preciseInCircle3D(const Point *pa, const Point *pb, const Point *pc, const Point *pd)
+	inline tmesh_fraction preciseInCircle3D(const Point3c *pa, const Point3c *pb, const Point3c *pc, const Point3c *pd)
 	{
 		tmesh_fraction aex(pa->x.toRational().exact()), aey(pa->y.toRational().exact()), aez(pa->z.toRational().exact());
 		tmesh_fraction bex(pb->x.toRational().exact()), bey(pb->y.toRational().exact()), bez(pb->z.toRational().exact());

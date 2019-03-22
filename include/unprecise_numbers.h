@@ -78,6 +78,8 @@ namespace T_MESH
 		inline bool signIsReliable() const { return (low>0 || high <0 || (low==0 && high==0)); }
 		inline char sign() const { return (low > 0) ? (1) : ((low < 0) ? (-1) : (0)); }
 
+		inline double getMid() const { return (low + high)*0.5; }
+
 		inline bool operator<(const interval_number& b) const { return (high<b.low); }
 		inline bool operator>(const interval_number& b) const { return (low>b.high); }
 		inline bool operator<=(const interval_number& b) const { return (high <= b.low); }
@@ -261,6 +263,7 @@ public:
 	inline lazy_num& operator=(const lazy_num& n) {	root = n.root; return *this; }
 
 	inline const interval_number& unprecise() const { return root->unprecise(); }
+	inline const double approx() const { return root->unprecise().getMid(); }
 	inline const tmesh_fraction& exact() const { return root->exact(); }
 	inline bool isPrecise() const { return (root->unprecise().isExact()); }
 
@@ -269,7 +272,7 @@ public:
 	inline lazy_num operator*(const lazy_num& n) const { return lazy_num(*this, n, operation_id::product); }
 	inline lazy_num operator/(const lazy_num& n) const { return lazy_num(*this, n, operation_id::division); }
 
-	inline lazy_num& operator+=(const lazy_num& n) { root = std::make_shared<lazy_num_binary>(root, n.root, operation_id::sum); return *this; } // Can this be optimized? (remove ref+unref for root)
+	inline lazy_num& operator+=(const lazy_num& n) { root = std::make_shared<lazy_num_binary>(root, n.root, operation_id::sum); return *this; }
 	inline lazy_num& operator-=(const lazy_num& n) { root = std::make_shared<lazy_num_binary>(root, n.root, operation_id::difference); return *this; }
 	inline lazy_num& operator*=(const lazy_num& n) { root = std::make_shared<lazy_num_binary>(root, n.root, operation_id::product); return *this; }
 	inline lazy_num& operator/=(const lazy_num& n) { root = std::make_shared<lazy_num_binary>(root, n.root, operation_id::division); return *this; }
