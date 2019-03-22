@@ -48,6 +48,7 @@ bool Point::operator<(const Point& s) const
 
 Point Point::linearSystem(const Point& a, const Point& b, const Point& c) const
 {
+	// Optimize - need to avoid redoing same multiplications
 	coord det_A = TMESH_DETERMINANT3X3(a.x, a.y, a.z, b.x, b.y, b.z, c.x, c.y, c.z);
 	if (det_A == 0.0) return INFINITE_POINT;
 	return Point(
@@ -62,7 +63,7 @@ Point Point::linearSystem(const Point& a, const Point& b, const Point& c) const
 Point Point::projection(const Point *A, const Point *B) const
 {
 	Point BA((*B) - (*A));
-	coord l = BA*BA;
+	coord l = BA.squaredLength();
 	if (l == 0.0) return INFINITE_POINT;
 
 	return ((*A) + (BA*((BA*((*this) - (*A))) / (l))));

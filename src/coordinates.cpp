@@ -133,6 +133,79 @@ PM_Rational round(const PM_Rational& a)
 		return PM_Rational(::round(a.getDVal()));
 }
 
+#ifdef USE_LAZY_KERNEL
+
+void lazy_num_base::compute_exact()
+{
+	tmesh_fraction *nv;
+
+	if (approximate_value.isExact())
+	{
+		nv = new tmesh_fraction(approximate_value.low);
+	}
+	else
+	{
+		switch (operation)
+		{
+		case operation_id::none:
+		nv = new tmesh_fraction(approximate_value.low);
+		break;
+		case operation_id::sum:
+		nv = new tmesh_fraction(((lazy_num_binary *)this)->operand_1->exact() + ((lazy_num_binary *)this)->operand_2->exact());
+		break;
+		case operation_id::difference:
+		nv = new tmesh_fraction(((lazy_num_binary *)this)->operand_1->exact() - ((lazy_num_binary *)this)->operand_2->exact());
+		break;
+		case operation_id::product:
+		nv = new tmesh_fraction(((lazy_num_binary *)this)->operand_1->exact() * ((lazy_num_binary *)this)->operand_2->exact());
+		break;
+		case operation_id::division:
+		nv = new tmesh_fraction(((lazy_num_binary *)this)->operand_1->exact() / ((lazy_num_binary *)this)->operand_2->exact());
+		}
+	}
+#ifndef TMESH_SAFE_LOW_MEM_FOOTPRINT
+#pragma omp critical
 #endif
+	{
+		if (exact_value == NULL)
+		{
+			exact_value = nv;
+#ifdef TMESH_SAFE_LOW_MEM_FOOTPRINT
+			if (operation == operation_id::sum || operation == operation_id::difference || operation == operation_id::product || operation == operation_id::division)
+			{
+				if (((lazy_num_binary *)this)->operand_1.use_count()) ((lazy_num_binary *)this)->operand_1.reset();
+				if (((lazy_num_binary *)this)->operand_2.use_count()) ((lazy_num_binary *)this)->operand_2.reset();
+			}
+#endif
+			operation = operation_id::none;
+			if (!approximate_value.isExact()) approximate_value = interval_number(*exact_value);
+		} else delete nv;
+	}
+}
+
+void lazy_num_base::print() const
+{
+	switch (operation)
+	{
+	case operation_id::none:
+	printf("[ %f , %f]", approximate_value.low, approximate_value.high);
+	return;
+	case operation_id::sum:
+	printf("( "); ((lazy_num_binary *)this)->operand_1->print(); printf(" + "); ((lazy_num_binary *)this)->operand_2->print(); printf(" )");
+	return;
+	case operation_id::difference:
+	printf("( "); ((lazy_num_binary *)this)->operand_1->print(); printf(" - "); ((lazy_num_binary *)this)->operand_2->print(); printf(" )");
+	return;
+	case operation_id::product:
+	printf("( "); ((lazy_num_binary *)this)->operand_1->print(); printf(" * "); ((lazy_num_binary *)this)->operand_2->print(); printf(" )");
+	return;
+	case operation_id::division:
+	printf("( "); ((lazy_num_binary *)this)->operand_1->print(); printf(" / "); ((lazy_num_binary *)this)->operand_2->print(); printf(" )");
+	}
+}
+
+#endif // USE_LAZY_KERNEL
+
+#endif // USE_HYBRID_KERNEL
 
 } //namespace T_MESH
