@@ -571,6 +571,7 @@ inline PM_Rational fabs(const PM_Rational& a) {	if (a < 0) return -a; else retur
 #define TMESH_TO_NEAREST_DOUBLE(x) ((x).toNearestDouble())
 #define TMESH_TO_LOWER_DOUBLE(x) ((x).toLowerDouble())
 #define TMESH_TO_UPPER_DOUBLE(x) ((x).toUpperDouble())
+#define TMESH_IS_NONZERO(x) ((x).sign())
 #define TMESH_IS_ZERO(x) (!(x).sign())
 
 #define TMESH_OMP_CLAUSES firstprivate(tmesh_thread_initializer) copyin(PM_Rational::use_rationals)
@@ -585,6 +586,7 @@ typedef double PM_Rational;
 #define TMESH_TO_NEAREST_DOUBLE(x) (x)
 #define TMESH_TO_LOWER_DOUBLE(x) (x)
 #define TMESH_TO_UPPER_DOUBLE(x) (x)
+#define TMESH_IS_NONZERO(x) ((x)!=0)
 #define TMESH_IS_ZERO(x) ((x)==0)
 
 #define TMESH_OMP_CLAUSES

@@ -322,13 +322,11 @@ bool Point3c::segmentIntersectsTriangle(const Point3c *s1, const Point3c *s2, co
 // Return INFINITE_POINT is lines do not intersect or if p==q or r==s
 Point3c Point3c::lineLineIntersection(const Point3c& p, const Point3c& q, const Point3c& r, const Point3c& s)
 {
-	Point3c da(q - p);
-	Point3c db(s - r);
-	Point3c dc(r - p);
+	Point3c da(q - p), db(s - r), dc(r - p);
 	Point3c dab(da&db);
 
 	if (dab.isNull()) return INFINITE_POINT; // parallel
-	if ((dc*dab) != 0.0) return INFINITE_POINT; // skew
+	if (TMESH_IS_NONZERO(dc*dab)) return INFINITE_POINT; // skew
 
 	return p + (da*(((dc&db)*dab) / (dab*dab)));
 }
@@ -354,8 +352,8 @@ Point3c Point3c::linePlaneIntersection(const Point3c& p, const Point3c& q, const
 Point3c Point3c::linePlaneIntersection(const Point3c& v1, const Point3c& v2, const Point3c& v0, const Point3c& d)
 {
 	Point3c v21(v2 - v1);
-	coord den = d*v21;
-	if (den == 0) return INFINITE_POINT;
+	coord den(d*v21);
+	if (TMESH_IS_ZERO(den)) return INFINITE_POINT;
 	else return v1 + (v21*((d*(v0 - v1)) / den));
 }
 
@@ -373,7 +371,7 @@ coord Point3c::squaredDistanceFromPlane(const Point3c& dirver, const Point3c& ap
 {
 	coord CA2 = dirver*dirver;
 
-	if (CA2 == 0) return TMESH_INFINITY;
+	if (TMESH_IS_ZERO(CA2)) return TMESH_INFINITY;
 	coord d = (dirver*(*this)) - (dirver*(app_point));
 
 	return (d*d) / CA2;
@@ -394,7 +392,7 @@ bool Point3c::closestPoints(const Point3c *v1, const Point3c *p1, const Point3c 
 	coord B = u*v;
 	coord C = v*v;
 	coord denom = (A*C) - (B*B);
-	if (denom == 0.0) return false; // Lines are parallel
+	if (TMESH_IS_ZERO(denom)) return false; // Lines are parallel
 
 	Point3c w0 = (*this) - (*p1);
 	coord D = u*w0;

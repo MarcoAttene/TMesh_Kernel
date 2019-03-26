@@ -30,21 +30,6 @@
 
 namespace T_MESH
 {
-
-// Macros to work with marking bits
-#define MARK_VISIT(a)   ((a)->mask |= ((unsigned char)1))
-#define IS_VISITED(a)   ((a)->mask &  ((unsigned char)1))
-#define UNMARK_VISIT(a) ((a)->mask &= (~((unsigned char)1)))
-
-#define MARK_VISIT2(a)   ((a)->mask |= ((unsigned char)2))
-#define IS_VISITED2(a)   ((a)->mask &  ((unsigned char)2))
-#define UNMARK_VISIT2(a) ((a)->mask &= (~((unsigned char)2)))
-
-#define MARK_BIT(a,b)   ((a)->mask |= ((unsigned char)(1<<b)))
-#define IS_BIT(a,b)     ((a)->mask &  ((unsigned char)(1<<b)))
-#define UNMARK_BIT(a,b) ((a)->mask &= (~((unsigned char)(1<<b))))
-
-
 //! Orientation predicates on PM_Rationals
 
 class Point3c;
@@ -151,7 +136,7 @@ class Point3c
  inline void 	invert() { x = -x; y = -y; z = -z; }
 
  //! TRUE if vector is (0,0,0)
- inline bool  	isNull() const { return (x == 0 && y == 0 && z == 0); }
+ inline bool  	isNull() const { return (TMESH_IS_ZERO(x) && TMESH_IS_ZERO(y) && TMESH_IS_ZERO(z)); }
 
  //! Returns the solution of the linear system Ax = d, where A is a 3x3 matrix whose rows are row1, row2 and row3, d = this
  Point3c  linearSystem(const Point3c& row1, const Point3c& row2, const Point3c& row3) const;
@@ -302,8 +287,8 @@ class Point3c
  inline double getAngle(const Point3c *a, const Point3c *b) const { return ((*a) - (*this)).getAngle((*b) - (*this)); }
 
  //! These functions round the coordinates to the closest floating point representation
- void snapToSinglePrecisionFloat() { x = TMESH_TO_FLOAT(x); y = TMESH_TO_FLOAT(y); z = TMESH_TO_FLOAT(z); }
- void snapToDoublePrecisionFloat() { x = TMESH_TO_DOUBLE(x); y = TMESH_TO_DOUBLE(y); z = TMESH_TO_DOUBLE(z); }
+ void snapToSinglePrecisionFloat() { x = float(TMESH_TO_NEAREST_DOUBLE(x)); y = float(TMESH_TO_NEAREST_DOUBLE(y)); z = float(TMESH_TO_NEAREST_DOUBLE(z)); }
+ void snapToDoublePrecisionFloat() { x = TMESH_TO_NEAREST_DOUBLE(x); y = TMESH_TO_NEAREST_DOUBLE(y); z = TMESH_TO_NEAREST_DOUBLE(z); }
 
  //! Prints the coordinates of the point to a file handler. stdout is the default.
  void 	printPoint(FILE *fp = stdout) const { fprintf(fp, "%f %f %f,\n", TMESH_TO_FLOAT(x), TMESH_TO_FLOAT(y), TMESH_TO_FLOAT(z)); }		// Debug
@@ -315,6 +300,7 @@ int xyzCompare(const void *p1, const void *p2);
 //! Static point with 'infinite' coordinates.
 extern const Point3c INFINITE_POINT;
 
+// The following is wrong! -INF returns TRUE. Should be fixed...
 //! Checks whether a point is INFINITE_POINT.
 #define IS_FINITE_POINT(p) ((p).x < TMESH_INFINITY && (p).y < TMESH_INFINITY && (p).z < TMESH_INFINITY)
 

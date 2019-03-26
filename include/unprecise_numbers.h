@@ -221,10 +221,6 @@ class lazy_num_binary : public lazy_num_base
 public:
 	std::shared_ptr<lazy_num_base> operand_1, operand_2;
 
-	inline lazy_num_binary(double d) : lazy_num_base(d) {}
-
-	inline lazy_num_binary(const tmesh_fraction& a) : lazy_num_base(a) {}
-
 	inline lazy_num_binary(const std::shared_ptr<lazy_num_base>& a, const std::shared_ptr<lazy_num_base>& b, const operation_id op) : lazy_num_base(op),
 		operand_1(a),
 		operand_2(b)
