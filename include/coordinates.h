@@ -432,58 +432,62 @@ class PM_Rational
 
 		inline void operator+=(const PM_Rational& a)
 		{
-			if (use_rationals) { S2R(); (*(_val_p)) += a.toRational(); } else { _val_d += a.toDouble(); }
+			if (use_rationals) { S2R(); (*(_val_p)) += a.toRational(); }
+			_val_d += a.toDouble();
 		}
 
 		inline void operator-=(const PM_Rational& a)
 		{
-			if (use_rationals) { S2R(); (*(_val_p)) -= a.toRational(); } else { _val_d -= a.toDouble(); }
+			if (use_rationals) { S2R(); (*(_val_p)) -= a.toRational(); }
+			_val_d -= a.toDouble();
 		}
 
 		inline void operator*=(const PM_Rational& a)
 		{
-			if (use_rationals) { S2R(); (*(_val_p)) *= a.toRational(); } else { _val_d *= a.toDouble(); }
+			if (use_rationals) { S2R(); (*(_val_p)) *= a.toRational(); }
+			_val_d *= a.toDouble();
 		}
 
 		inline void operator/=(const PM_Rational& a)
 		{
-			if (use_rationals) { S2R(); (*(_val_p)) /= a.toRational(); } else { _val_d /= a.toDouble(); }
+			if (use_rationals) { S2R(); (*(_val_p)) /= a.toRational(); }
+			_val_d /= a.toDouble();
 		}
 
 		inline PM_Rational operator+(const PM_Rational& a) const
 		{
 			if (use_rationals) return PM_Rational(toRational() + a.toRational());
-			else return PM_Rational(toDouble() + a.toDouble());
+			return PM_Rational(toDouble() + a.toDouble());
 		}
 
 		inline PM_Rational operator-(const PM_Rational& a) const
 		{
 			if (use_rationals) return PM_Rational(toRational() - a.toRational());
-			else return PM_Rational(toDouble() - a.toDouble());
+			return PM_Rational(toDouble() - a.toDouble());
 		}
 
 		inline PM_Rational operator*(const PM_Rational& a) const
 		{
 			if (use_rationals) return PM_Rational(toRational() * a.toRational());
-			else return PM_Rational(toDouble() * a.toDouble());
+			return PM_Rational(toDouble() * a.toDouble());
 		}
 
 		inline PM_Rational operator/(const PM_Rational& a) const
 		{
 			if (use_rationals) return PM_Rational(toRational() / a.toRational());
-			else return PM_Rational(toDouble() / a.toDouble());
+			return PM_Rational(toDouble() / a.toDouble());
 		}
 
 		inline bool operator==(const PM_Rational& a) const
 		{
 			if (_val_p || a._val_p) return (toRational() == a.toRational());
-			else return (_val_d == a._val_d);
+			return (_val_d == a._val_d);
 		}
 
 		inline bool operator!=(const PM_Rational& a) const
 		{
 			if (_val_p || a._val_p) return (toRational() != a.toRational());
-			else return (_val_d != a._val_d);
+			return (_val_d != a._val_d);
 		}
 
 		inline PM_Rational& operator=(const PM_Rational& a)
@@ -515,25 +519,25 @@ class PM_Rational
 		inline bool operator<(const PM_Rational& a) const
 		{
 			if (_val_p || a._val_p) return (toRational() < a.toRational());
-			else return (_val_d < a._val_d);
+			return (_val_d < a._val_d);
 		}
 
 		inline bool operator>(const PM_Rational& a) const
 		{
 			if (_val_p || a._val_p) return (toRational() > a.toRational());
-			else return (_val_d > a._val_d);
+			return (_val_d > a._val_d);
 		}
 
 		inline bool operator<=(const PM_Rational& a) const
 		{
 			if (_val_p || a._val_p) return (toRational() <= a.toRational());
-			else return (_val_d <= a._val_d);
+			return (_val_d <= a._val_d);
 		}
 
 		inline bool operator>=(const PM_Rational& a) const
 		{
 			if (_val_p || a._val_p) return (toRational() >= a.toRational());
-			else return (_val_d >= a._val_d);
+			return (_val_d >= a._val_d);
 		}
 
 		friend char orient2D(const PM_Rational& px, const PM_Rational& py, const PM_Rational& qx, const PM_Rational& qy, const PM_Rational& rx, const PM_Rational& ry);
@@ -555,7 +559,7 @@ class PM_Rational
 inline PM_Rational operator-(const PM_Rational& a)
 {
 	if (a.isOfRationalType()) return PM_Rational(-(*(a._val_p)));
-	else return PM_Rational(-a._val_d);
+	return PM_Rational(-a._val_d);
 }
 
 PM_Rational ceil(const PM_Rational& a);
