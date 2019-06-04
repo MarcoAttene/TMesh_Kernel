@@ -293,7 +293,7 @@ bool Point3c::segmentIntersectsTriangle(const Point3c *s1, const Point3c *s2, co
 	return true;
 }
 
-bool Point3c::segmentIntersectsTriangle(const Point3c *s1, const Point3c *s2, const Point3c *v1, const Point3c *v2, const Point3c *v3, const coord& oo1, const coord& oo2)
+bool Point3c::segmentIntersectsTriangle(const Point3c *s1, const Point3c *s2, const Point3c *v1, const Point3c *v2, const Point3c *v3, char oo1, char oo2)
 {
 	// In this case the fast reject by bounding box appears to be a disadvantage ...
 	if (oo1 == 0 && oo2 == 0)
@@ -331,6 +331,14 @@ Point3c Point3c::lineLineIntersection(const Point3c& p, const Point3c& q, const 
 	return p + (da*(((dc&db)*dab) / (dab*dab)));
 }
 
+Point3c Point3c::tmpExact_lineLineIntersection(const Point3c& p, const Point3c& q, const Point3c& r, const Point3c& s)
+{
+	bool ps = TMesh::useRationals();
+	Point3c res = lineLineIntersection(p, q, r, s);
+	TMesh::useRationals(ps);
+	return res;
+}
+
 // Returns the point of intersection between the line for (p,q) and the plane for (r,s,t)
 // Returns INFINITE_POINT in case of parallelism
 Point3c Point3c::linePlaneIntersection(const Point3c& p, const Point3c& q, const Point3c& r, const Point3c& s, const Point3c& t)
@@ -347,6 +355,14 @@ Point3c Point3c::linePlaneIntersection(const Point3c& p, const Point3c& q, const
 	return Point3c(p.x + a11*num, p.y + a12*num, p.z + a13*num);
 }
 
+Point3c Point3c::tmpExact_linePlaneIntersection(const Point3c& p, const Point3c& q, const Point3c& r, const Point3c& s, const Point3c& t)
+{
+	bool ps = TMesh::useRationals();
+	Point3c res = linePlaneIntersection(p, q, r, s, t);
+	TMesh::useRationals(ps);
+	return res;
+}
+
 // Returns the point of intersection between the line for (v1,v2) and the plane for 'v0' with directional vector 'd'
 // Returns INFINITE_POINT in case of parallelism
 Point3c Point3c::linePlaneIntersection(const Point3c& v1, const Point3c& v2, const Point3c& v0, const Point3c& d)
@@ -357,6 +373,33 @@ Point3c Point3c::linePlaneIntersection(const Point3c& v1, const Point3c& v2, con
 	else return v1 + (v21*((d*(v0 - v1)) / den));
 }
 
+Point3c Point3c::tmpExact_linePlaneIntersection(const Point3c& v1, const Point3c& v2, const Point3c& v0, const Point3c& d)
+{
+	bool ps = TMesh::useRationals();
+	Point3c res = linePlaneIntersection(v1, v2, v0, d);
+	TMesh::useRationals(ps);
+	return res;
+}
+
+Point3c Point3c::threePlanesIntersection(const Point3c& v1, const Point3c& v2, const Point3c& v3,
+	const Point3c& w1, const Point3c& w2, const Point3c& w3,
+	const Point3c& u1, const Point3c& u2, const Point3c& u3)
+{
+	Point3c nv((v2 - v1)&(v3 - v2));
+	Point3c nw((w2 - w1)&(w3 - w2));
+	Point3c nu((u2 - u1)&(u3 - u2));
+	return Point3c(nv*v1, nw*w1, nu*u1).linearSystem(nv, nw, nu);
+}
+
+Point3c Point3c::tmpExact_threePlanesIntersection(const Point3c& v1, const Point3c& v2, const Point3c& v3,
+	const Point3c& w1, const Point3c& w2, const Point3c& w3,
+	const Point3c& u1, const Point3c& u2, const Point3c& u3)
+{
+	bool ps = TMesh::useRationals();
+	Point3c res = threePlanesIntersection(v1, v2, v3, w1, w2, w3, u1, u2, u3);
+	TMesh::useRationals(ps);
+	return res;
+}
 
 coord Point3c::squaredDistanceFromLine(const Point3c *x1, const Point3c *x2) const
 {

@@ -41,7 +41,7 @@
 // The following macros are fast implementations of basic expansion arithmetic due
 // to Dekker, Knuth, Priest, Shewchuk, and others.
 
-// See Y. Hida, X. S. Li,  D. H. Bailey "Algorithms for Quad-Double Precision Floating Point3c Arithmetic"
+// See Y. Hida, X. S. Li,  D. H. Bailey "Algorithms for Quad-Double Precision Floating Point Arithmetic"
 
 // Sums
 #define Quick_Two_Sum(a, b, x, y) x = a + b; y = b - (x - a)

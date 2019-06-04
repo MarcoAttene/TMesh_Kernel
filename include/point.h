@@ -209,17 +209,28 @@ class Point3c
 
  //! true if segment (s1-s2) intersects the triangle v1-v2-v3 (border included).
  //! Accelerated version - relative orientations are passed as parameters.
- static bool segmentIntersectsTriangle(const Point3c *s1, const Point3c *s2, const Point3c *v1, const Point3c *v2, const Point3c *v3, const coord& o1, const coord& o2);
+ static bool segmentIntersectsTriangle(const Point3c *s1, const Point3c *s2, const Point3c *v1, const Point3c *v2, const Point3c *v3, char o1, char o2);
 
  //! Itersection point between lines p-q and r-s. Return INFINITE_POINT if lines are either non-intersecting or degenerate.
  static Point3c lineLineIntersection(const Point3c& p, const Point3c& q, const Point3c& r, const Point3c& s);
+ static Point3c tmpExact_lineLineIntersection(const Point3c& p, const Point3c& q, const Point3c& r, const Point3c& s);
 
  //! Itersection point between line p-q and plane r-s-t. Return INFINITE_POINT for parallel/degenerate args.
  static Point3c linePlaneIntersection(const Point3c& p, const Point3c& q, const Point3c& r, const Point3c& s, const Point3c& t);
+ static Point3c tmpExact_linePlaneIntersection(const Point3c& p, const Point3c& q, const Point3c& r, const Point3c& s, const Point3c& t);
 
  //! Itersection point between line p-q and plane for 'v0' with directional vector 'd'. Return INFINITE_POINT for parallel/degenerate args.
  static Point3c linePlaneIntersection(const Point3c& p, const Point3c& q, const Point3c& v0, const Point3c& d);
+ static Point3c tmpExact_linePlaneIntersection(const Point3c& p, const Point3c& q, const Point3c& v0, const Point3c& d);
 
+ //! Itersection of three planes. Return INFINITE_POINT for parallel/degenerate args.
+ static Point3c threePlanesIntersection(const Point3c& v1, const Point3c& v2, const Point3c& v3,
+	 const Point3c& w1, const Point3c& w2, const Point3c& w3,
+	 const Point3c& u1, const Point3c& u2, const Point3c& u3);
+
+ static Point3c tmpExact_threePlanesIntersection(const Point3c& v1, const Point3c& v2, const Point3c& v3,
+	 const Point3c& w1, const Point3c& w2, const Point3c& w3,
+	 const Point3c& u1, const Point3c& u2, const Point3c& u3);
 
  //! Squared distance from origin
  inline coord squaredLength() const { return (x*x + y*y + z*z); }
