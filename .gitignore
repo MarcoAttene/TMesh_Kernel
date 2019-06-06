@@ -21,3 +21,9 @@ bin64
 bin
 
 src/test_kernel.cpp
+
+mpir/mpir32.lib
+
+mpir/mpir64.lib
+
+mpir/mpir.h

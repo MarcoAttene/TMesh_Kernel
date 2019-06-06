@@ -31,14 +31,6 @@ function(tmesh_kernel_download_catch2)
     )
 endfunction()
 
-## tbb Apache-2.0
-function(tmesh_kernel_download_tbb)
-    tmesh_kernel_download_project(tbb
-        GIT_REPOSITORY https://github.com/wjakob/tbb.git
-        GIT_TAG        08b4341a1893a72656467e96137f1f99d0112547
-    )
-endfunction()
-
 
 ## Sanitizers MIT
 function(tmesh_kernel_download_sanitizers)

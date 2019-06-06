@@ -19,22 +19,8 @@ include(TMeshKernelDownloadExternal)
 
 # Sanitizers
 if(TMESH_KERNEL_WITH_SANITIZERS)
-    polyfem_download_sanitizers()
+    tmesh_kernel_download_sanitizers()
     find_package(Sanitizers)
-endif()
-
-# TBB
-if(${TMESH_KERNEL_ENABLE_TBB} AND NOT TARGET tbb_static)
-	tmesh_kernel_download_tbb()
-	set(TBB_BUILD_STATIC ON CACHE BOOL " " FORCE)
-	set(TBB_BUILD_SHARED OFF CACHE BOOL " " FORCE)
-	set(TBB_BUILD_TBBMALLOC OFF CACHE BOOL " " FORCE)
-	set(TBB_BUILD_TBBMALLOC_PROXY OFF CACHE BOOL " " FORCE)
-	set(TBB_BUILD_TESTS OFF CACHE BOOL " " FORCE)
-
-	add_subdirectory(${THIRD_PARTY_DIR}/tbb tbb)
-	set_property(TARGET tbb_static tbb_def_files PROPERTY FOLDER "dependencies")
-	target_compile_definitions(tbb_static PUBLIC -DTMESH_KERNEL_USE_TBB)
 endif()
 
 tmesh_kernel_download_catch2()

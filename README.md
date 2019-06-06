@@ -47,77 +47,45 @@ System Requirements
 --------------------
 
 TMesh_Kernel has been tested on 32 and 64 bit PCs running:
- - Microsoft Windows OS with MSVC 12.0 (Visual C++ 2013)
+ - Microsoft Windows OS with MSVC
  - Linux with standard gcc/g++ development environment
+ - Mac OSX
 
-TMesh_Kernel exploits MPIR to implement exact arithmetic.
-MPIR is used to deal with multiprecision and rational coordinates.
-Precompiled static .lib files are provided for Windows systems
-in the 'mpir' folder. A precompiled static .a file is also provided
-for 64-bit Linux systems. If you are using another system you need
-to download MPIR at http://www.mpir.org/ and compile the library yourself.
-Note that MPIR ***IS NOT*** part of TMesh_Kernel. The pre-compiled libs and
-header files are provided along with this distribution in the hope to
-ease the use of MPIR within TMesh_Kernel.
+TMesh_Kernel exploits MPIR to deal with arbitrarily precise rational numbers.
 MPIR is an independent software licensed under the terms of GNU LGPL v3.
-Both the header files and the pre-compiled .lib and .a files included in
-'mpir' are produced out of MPIR version 3.0, released on 2017-03-01.
 Please look at mpir/README.txt for further information.
 
 -------------------
 Building the tree
 -------------------
 
-On MS Windows:
-TMesh_Kernel can be compiled for both 32 and 64 bit architectures.
-It can be compiled in three different modes:
-'Fast' = top speed / lowest memory footprint / non-robust (self-contained / no dependencies)
-'Hybrid' = slowest / intermediate memory footprint / robust (uses MPIR)
-'Lazy' = intermediate speed / high memory footprint / robust (uses MPIR)
+Before building TMesh_Kernel, you must obtain and build MPIR.
+Please look at mpir/README.txt for instructions.
 
-In 'Fast' mode, the basic 'coord' type is simply an IEEE standard double.
-This mode has been included mainly for benchmarking purposes as it is not hybrid.
-In 'Hybrid' mode, the 'coord' type is a polymorphic number that can be either
-a standard double or an exact rational number (see the paper for details).
-'Lazy' mode is equivalent to 'Hybrid', but the exact rational number is evaluated
-only when a predicate requires it.
+Once done with MPIR, return to the directory containing this README file and type:
+> mkdir build
+> cd build
+> cmake ..
 
-Double-click on build/msvc/TMesh_Kernel.sln.
-Select the proper combination of Configuration/Platform based on your needs.
-Configuration can be: Fast, Hybrid, Lazy
-Platform can be: Win32, x64
-Press f7 to compile the solution.
+This will produce an appropriate building configuration for your system.
+On Windows MSVC, this will produce a TMesh_Kernel.sln file
+On Linux/OSx, this will produce a Makefile
 
-On Linux/Unix:
-> cd build/linux-gcc
-> make
-> cd ../..
-> mv bin64/*.a lib64
-
-This should produce both the library (in lib64/) and a test executable (in bin64/).
-Note that the Makefile provided for Linux is only able to compile 64 bit versions.
-
-Compilation options through preprocessor definitions:
-1) IS64BITPLATFORM - set to compile a 64bit-compliant library
-2) USE_HYBRID_KERNEL - set to enable the hybrid kernel. If set, you need to have Mpir installed.
-3) USE_LAZY_KERNEL - set to enable lazy evaluation. If set, USE_HYBRID_KERNEL must be set too.
-4) EXTENSIBLE_TMESH - set to enable polymorphism. Usually not needed.
-
+Thanks to Teseo Schneider for having produced the CMake environment for TMesh_Kernel.
 
 -------------------
 Using the library
 -------------------
 
-The easiest way to start is to copy the compilation rules from kernel_test.vcxproj (on 
-Windows) or from the Makefile provided for Linux-gcc.
-In any case, here are general rules to compile your application.
+C/C++ code using TMesh_Kernel must be compiled according to the following rules.
 
 --- include path must include:
 $(TMESH_HOME)/include
-$(TMESH_HOME)/mpir (only if USE_HYBRID_KERNEL)
+$(TMESH_HOME)/mpir
 
 --- preprocessor definitions
-must be the same used to compile the library (see above)
+In all cases: USE_HYBRID_KERNEL and USE_LAZY_KERNEL
+Only for 64bit builds: IS64BITPLATFORM
 
 --- library path must include:
 $(TMESH_HOME)/lib (if compiled for 32bit)
@@ -125,9 +93,9 @@ $(TMESH_HOME)/lib64 (if compiled for 64bit)
 $(TMESH_HOME)/mpir
 
 --- static libraries to be linked
-kernel_XXX.lib (where XXX can be either Fast, Hybrid or Lazy, possibly with 64 extension)
-mpirXXX.lib (only if USE_HYBRID_KERNEL, XXX is either 32 or 64)
-On Linux systems the YYY.lib is replaced with libYYY.a
+kernel_Lazy.lib (or kernel_Lazy64.lib for 64bit builds)
+mpirXXX.lib (XXX is either 32 or 64)
+On Linux/OSX the YYY.lib is replaced with libYYY.a
 
 --- other options to be set
 Support for OpenMP might be active

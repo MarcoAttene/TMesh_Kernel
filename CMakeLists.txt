@@ -47,7 +47,6 @@ endif()
 
 
 # Options for enabling/disabling optional libraries
-option(TMESH_KERNEL_ENABLE_TBB         "Enable TBB"             ON)
 
 # Sanitizer options
 option(TMESH_KERNEL_SANITIZE_ADDRESS   "Sanitize Address"       OFF)
@@ -130,13 +129,6 @@ endif()
 ################################################################################
 # Required libraries
 ################################################################################
-
-# TBB
-if(TMESH_KERNEL_ENABLE_TBB)
-	target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC ${THIRD_PARTY_DIR}/tbb/include)
-	target_link_libraries(${PROJECT_NAME} PUBLIC tbb_static)
-endif()
-
 
 # Catch2
 add_library(catch INTERFACE)

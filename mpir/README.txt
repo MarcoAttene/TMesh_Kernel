@@ -1,28 +1,51 @@
-This directory contains header files with both C and C++ bindings to MPIR-3.0.0.
+This directory must be enriched with two additional files besides this README.
 
-It also contains pre-compiled static libraries to be linked to your applications.
+***** On Windows MSVC *****
 
-On MS Windows systems
-mpir32.lib is optimized for processors of the Pentium 4 SSE2 family.
-mpir64.lib is optimized for processors of the Intel(TM) core-2(TM) family.
-mpir32-generic.lib is for generic x86-based architectures.
-mpir64-generic.lib is for generic x64-based architectures.
+The two additional files are:
+1) mpir.h
+2) One of: mpir64.lib (on MS Windows 64bit), mpir32.lib (on MS Windows 32bit)
 
-By default, ImatiSTL links to mpir32.lib and mpir64.lib library files.
-If you want to create software to be distributed and you want to maximize compatibility, then use the generic versions instead.
-To use the generic versions, you need to rename these .lib files accordingly (*-generic.lib -> *.lib).
+To create these two files:
+
+Option (1): check if your MSVC version matches one of the subfolders in this diorectory. If so, just copy from there. Otherwise use option 2 below.
+
+Option (2):
+
+1) Clone or download MPIR from https://github.com/BrianGladman/mpir
+2) cd mpir-master/msvc/vsXX (XX is one of 13, 15, 17, 19, ...select the one matching your MSVC version)
+3) open mpir.sln
+4) select Debug/Release and Win32/x64 based on your needs
+5) build the project lib_mpir_gc
+6) You will find both mpir.h and mpir.lib in msvc/vsXX/lib_mpir_gc/x64/Release/ (if you compiled for x64 in Release mode).
+7) Copy these two files in the directory containing this README file.
+8) Rename mpir.lib to mpir64.lib (if you compiled for x64, otherwise rename to mpir32.lib).
 
 
-On Linux systems:
-libmpir.a was compiled on a generic 64 bit Ubuntu Linux
+***** On Mac OSX *****
+
+The two additional files are:
+1) mpir.h
+2) libmpir.a
+
+To create these two files:
+1) brew install mpir 
+2) The two files will be placed in /usr/local/lib/libmpir.a and /usr/local/include/mpir.h
+3) Copy both of them in the directory containing this README file.
 
 
-All the static libraries included in this distribution were compiled starting from the original MPIR-3.0.0 source code.
-This code is freely available for download at:
-http://www.mpir.org/
+***** On Linux *****
 
-You may replace these pre-compiled versions with more recent and/or customized MPIR versions by simply compiling MPIR
-yourself. You just need to replace the .lib (or the .a) files with those produced by your compiler. You also need to replace the
-header files with those you used to compile MPIR itself.
+The two additional files are:
+1) mpir.h
+2) libmpir.a
 
-Note that the two headers mpir.h and mpirxx.h included in this folder are just redirections to the actual MPIR headers.
+To create these two files:
+1) sudo apt-get install yasm m4 build-essential unzip wget -y
+2) wget http://mpir.org/mpir-3.0.0
+3) unzip mpir-3.0.0.zip
+4) cd mpir-3.0.0
+5) ./configure
+6) make
+7) The two files will be placed in .libs/libmpir.a and ./mpir.h
+8) Copy these two files in the directory containing this README file.
