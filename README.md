@@ -73,9 +73,13 @@ This will produce an appropriate building configuration for your system.
 On Windows MSVC, this will produce a TMesh_Kernel.sln file
 On Linux/OSx, this will produce a Makefile
 
-**Warning for Windows MSVC:** If you build MPIR for 64bit architectures, 
-you must tell cmake. Otherwise, it creates Win32 builds by default.
-To make it create a 64bit build use:
+**Warning:** Make sure that cmake creates a build which is compatible
+with MPIR. If you compiled MPIR for 32bits, cmake should produce 32bit builds.
+Vice-versa, if you compiled MPIR for 64bits, cmake should produce 64bit builds.
+You may need to change the default behaviour of your cmake generator.
+
+For example, on Windows MSVC cmake creates Win32 builds by default.
+To make it create a 64bit build, replace the `cmake ..` command above with:
 ```
 cmake -G "Visual Studio 12 2013 Win64" ..
 ```
