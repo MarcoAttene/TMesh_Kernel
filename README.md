@@ -88,7 +88,7 @@ $(TMESH_HOME)/mpir
 ```
 
 **preprocessor definitions**
-In all cases: USE_HYBRID_KERNEL and USE_LAZY_KERNEL
+In all cases: `USE_HYBRID_KERNEL` and `USE_LAZY_KERNEL`
 Only for 64bit builds: IS64BITPLATFORM
 
 **library path must include:**
@@ -99,9 +99,9 @@ $(TMESH_HOME)/mpir
 ```
 
 **static libraries to be linked**
-kernel_Lazy.lib (or kernel_Lazy64.lib for 64bit builds)
-mpirXXX.lib (XXX is either 32 or 64)
-On Linux/OSX the YYY.lib is replaced with libYYY.a
+`kernel_Lazy.lib` (or `kernel_Lazy64.lib` for 64bit builds)
+`mpirXXX.lib` (XXX is either 32 or 64)
+On Linux/OSX the YYY.lib is replaced with `libYYY.a`
 
 **other options to be set**
 Support for OpenMP might be active
