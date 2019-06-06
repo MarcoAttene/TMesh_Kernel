@@ -73,6 +73,14 @@ This will produce an appropriate building configuration for your system.
 On Windows MSVC, this will produce a TMesh_Kernel.sln file
 On Linux/OSx, this will produce a Makefile
 
+**Warning for Windows MSVC:** If you build MPIR for 64bit architectures, 
+you must tell cmake. Otherwise, it creates Win32 builds by default.
+To make it create a 64bit build use:
+```
+cmake -G "Visual Studio 12 2013 Win64" ..
+```
+and possibly replace "Visual Studio 12 2013" with your own version.
+
 Thanks to Teseo Schneider for having produced the CMake environment for TMesh_Kernel.
 
 -------------------
