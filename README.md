@@ -63,9 +63,11 @@ Before building TMesh_Kernel, you must obtain and build MPIR.
 Please look at mpir/README.txt for instructions.
 
 Once done with MPIR, return to the directory containing this README file and type:
-> mkdir build
-> cd build
-> cmake ..
+```
+mkdir build
+cd build
+cmake ..
+```
 
 This will produce an appropriate building configuration for your system.
 On Windows MSVC, this will produce a TMesh_Kernel.sln file
