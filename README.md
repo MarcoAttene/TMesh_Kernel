@@ -36,7 +36,7 @@ Documentation
 
 The aforementioned paper is the best source of information to understand the hybrid arithmetic paradigm.
 However, the paper is not meant to be a comprehensive programmer's guide.
-The file src/test_kernel.cpp is a good starting point to start playing with the library.
+The file tests/test_kernel.cpp is a good starting point to start playing with the library.
 It has been extensively commented to step-by-step explain how to use the main library features.
 Other than that, please look at the comments within the header files or use doxygen to
 produce documentation in a more readable format.
@@ -102,7 +102,8 @@ $(TMESH_HOME)/mpir
 **preprocessor definitions**
 
 In all cases: `USE_HYBRID_KERNEL` and `USE_LAZY_KERNEL`
-Only for 64bit builds: IS64BITPLATFORM
+
+Only for 64bit builds: `IS64BITPLATFORM`
 
 **library path must include:**
 ```
@@ -114,8 +115,10 @@ $(TMESH_HOME)/mpir
 **static libraries to be linked**
 
 `kernel_Lazy.lib` (or `kernel_Lazy64.lib` for 64bit builds)
+
 `mpirXXX.lib` (XXX is either 32 or 64)
-On Linux/OSX the YYY.lib is replaced with `libYYY.a`
+
+On Linux/OSX the `YYY.lib` is replaced with `libYYY.a`
 
 **other options to be set**
 Support for OpenMP might be active
