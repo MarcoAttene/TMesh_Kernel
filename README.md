@@ -71,7 +71,8 @@ cmake ..
 
 This will produce an appropriate building configuration for your system.
 On Windows MSVC, this will produce a TMesh_Kernel.sln file.
-On Linux/OSx, this will produce a Makefile.
+On Linux/OSx, this will produce a Makefile. 
+Use it as usual to compile TMesh_Kernel.
 
 **Warning:** Make sure that cmake creates a build which is compatible
 with MPIR. If you compiled MPIR for 32bits, cmake should produce 32bit builds.
