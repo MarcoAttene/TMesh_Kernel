@@ -74,7 +74,7 @@ int PM_Rational::fget(FILE *fp)
 	if (gmp_fscanf(fp, "%Qd", a.get_mpq_t()))
 	{
 		double d = a.get_d();
-		if (a == d) setFromDouble(d);
+		if (a == tmesh_fraction(d)) setFromDouble(d);
 		else setFromRational(EXACT_NT(a));
 		return 1;
 	}

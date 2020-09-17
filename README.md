@@ -62,7 +62,9 @@ Building the tree
 Before building TMesh_Kernel, you must obtain and build MPIR.
 Please look at mpir/README.txt for instructions.
 
-Once done with MPIR, return to the directory containing this README file and type:
+Once done with MPIR, return to the directory containing this README file,
+edit CMakeLists.txt at line 8 to enter the path containing mpir.a (or mpir.lib on Windows).
+Then type:
 ```
 mkdir build
 cd build

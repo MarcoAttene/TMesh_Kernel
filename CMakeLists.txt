@@ -3,32 +3,9 @@ cmake_minimum_required(VERSION 3.1)
 project(TMesh_Kernel)
 ################################################################################
 
-# cmake_policy(SET CMP0063 NEW)
-# set(CMAKE_CXX_VISIBILITY_PRESET hidden)
-
-# Detects whether this is a top-level project
-if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
-	set(TMESH_KERNEL_TOPLEVEL_PROJECT ON)
-else()
-	set(TMESH_KERNEL_TOPLEVEL_PROJECT OFF)
-endif()
-
-set(THIRD_PARTY_DIR ${CMAKE_CURRENT_SOURCE_DIR}/external/)
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
-list(APPEND CMAKE_MODULE_PATH ${THIRD_PARTY_DIR}/Catch2/contrib)
-
-# Color output
-include(UseColors)
-
-
-# Extra warnings
-include(Warnings)
-
-# Use C++11/14
-include(CXXFeatures)
-
-# Sort projects inside the solution
-set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+# Uncomment and adapt the following definition after having downloaded
+# mpir and compiled it for 64bit.
+#set(MPIR_LOCATION "D:/SOFTWARE/mpir-master/msvc/vs19/lib_mpir_gc/x64/Release")
 
 # Generate position independent code by default
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
@@ -47,43 +24,22 @@ endif()
 
 
 # Options for enabling/disabling optional libraries
-
-# Sanitizer options
-option(TMESH_KERNEL_SANITIZE_ADDRESS   "Sanitize Address"       OFF)
-option(TMESH_KERNEL_SANITIZE_MEMORY    "Sanitize Memory"        OFF)
-option(TMESH_KERNEL_SANITIZE_THREAD    "Sanitize Thread"        OFF)
-option(TMESH_KERNEL_SANITIZE_UNDEFINED "Sanitize Undefined"     OFF)
-
-
-option(TMESH_KERNEL_USE_HYBRID_KERNEL "Use hybrid kernel"     ON)
-option(TMESH_KERNEL_USE_LAZY_KERNEL   "Use lazy kernel"       ON)
-option(TMESH_KERNEL_EXTENSIBLE_TMESH  "Enable polymorphism"   OFF)
-
-if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-	option(TMESH_KERNEL_IS_Pentium_4_SSE2  "Uses MPIR optimized for processors of the Pentium 4 SSE2 family"         OFF)
-	option(TMESH_KERNEL_IS_intel_core2     "Uses MPIR optimized for processors of the Intel(TM) core-2(TM) family"   OFF)
-elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-	option(TMESH_KERNEL_USE_MPIR_PROVIDED_BINARY     "Uses the MPIR precompiled on a generic 64 bit Ubuntu Linux"   ON)
-endif()
-
-
-################################################################################
-# Dependencies
-################################################################################
-
-# Sanitizers
-if(TMESH_KERNEL_WITH_SANITIZERS)
-	list(APPEND CMAKE_MODULE_PATH ${THIRD_PARTY_DIR}/sanitizers-cmake/cmake)
-endif()
-
-# Setup dependencies
-include(TMeshKernelDependencies)
+option(USE_LAZY_KERNEL   "Use lazy kernel"       ON)
 
 ################################################################################
 # library
 ################################################################################
 
-add_library(${PROJECT_NAME}
+if(${USE_LAZY_KERNEL})
+	if(NOT DEFINED MPIR_LOCATION)
+	  message(FATAL_ERROR "MPIR_LOCATION is undefined. Please set it on line 8 in CMakeLists.txt")
+	endif(NOT DEFINED MPIR_LOCATION)
+	set(TMESH_LIB_PATH "kernel_Lazy64")
+else()
+	set(TMESH_LIB_PATH "kernel_Fast64")
+endif()
+
+add_library(${TMESH_LIB_PATH} STATIC
 	src/coordinates.cpp
 	src/expansion.cpp
 	src/mixedPredicates.cpp
@@ -93,59 +49,35 @@ add_library(${PROJECT_NAME}
 	)
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-	target_compile_options(${PROJECT_NAME} PUBLIC -frounding-math)
+	target_compile_options(${TMESH_LIB_PATH} PUBLIC -frounding-math)
+	set(MPIR_LIB ${MPIR_LOCATION}/mpir.a)
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-	target_compile_options(${PROJECT_NAME} PUBLIC "/fp:strict")
+	target_compile_options(${TMESH_LIB_PATH} PUBLIC "/fp:strict")
+	target_compile_definitions(${TMESH_LIB_PATH} PUBLIC -D_CRT_SECURE_NO_WARNINGS)
+	set(MPIR_LIB ${MPIR_LOCATION}/mpir.lib)
 endif()
 
-if(${TMESH_KERNEL_USE_HYBRID_KERNEL})
-	target_compile_definitions(${PROJECT_NAME} PUBLIC -DUSE_HYBRID_KERNEL)
-endif()
-
-if(${TMESH_KERNEL_USE_LAZY_KERNEL})
-	target_compile_definitions(${PROJECT_NAME} PUBLIC -DUSE_LAZY_KERNEL)
-	target_compile_definitions(${PROJECT_NAME} PUBLIC -DUSE_HYBRID_KERNEL)
+if(${USE_LAZY_KERNEL})
+	target_compile_definitions(${TMESH_LIB_PATH} PUBLIC -DUSE_LAZY_KERNEL)
+	target_compile_definitions(${TMESH_LIB_PATH} PUBLIC -DUSE_HYBRID_KERNEL)
 endif()
 
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-	target_compile_definitions(${PROJECT_NAME} PUBLIC -DIS64BITPLATFORM)
+	target_compile_definitions(${TMESH_LIB_PATH} PUBLIC -DIS64BITPLATFORM)
 endif()
 
 # Public include directory
-target_include_directories(${PROJECT_NAME} PUBLIC include)
-
-# Extra warnings
-target_link_libraries(${PROJECT_NAME} PRIVATE warnings::all)
+target_include_directories(${TMESH_LIB_PATH} PUBLIC include)
 
 # Use C++14
-target_compile_features(${PROJECT_NAME} PUBLIC ${CXX14_FEATURES})
-
-
-if(TMESH_KERNEL_WITH_SANITIZERS)
-	add_sanitizers(${PROJECT_NAME})
-endif()
+target_compile_features(${TMESH_LIB_PATH} PUBLIC ${CXX14_FEATURES})
 
 
 ################################################################################
 # Required libraries
 ################################################################################
 
-# Catch2
-add_library(catch INTERFACE)
-target_include_directories(catch SYSTEM INTERFACE ${THIRD_PARTY_DIR}/Catch2/single_include/catch2)
-
-
-include(mpir)
-target_link_libraries(${PROJECT_NAME} PUBLIC mpir)
-
-################################################################################
-# Subdirectories
-################################################################################
-
-# Compile extras only if this is a top-level project
-if(TMESH_KERNEL_TOPLEVEL_PROJECT)
-	# Unit tests
-	include(CTest)
-	enable_testing()
-	add_subdirectory(tests)
+if(${USE_LAZY_KERNEL})
+	target_include_directories(${TMESH_LIB_PATH} PUBLIC ${MPIR_LOCATION}/)
+	target_link_libraries(${TMESH_LIB_PATH} PUBLIC ${MPIR_LIB})
 endif()
