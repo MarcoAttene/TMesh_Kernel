@@ -7,18 +7,6 @@ project(TMesh_Kernel)
 # mpir and compiled it for 64bit.
 #set(MPIR_LOCATION "D:/SOFTWARE/mpir-master/msvc/vs19/lib_mpir_gc/x64/Release")
 
-# Generate position independent code by default
-set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-
-################################################################################
-
-if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-	foreach(config ${CMAKE_CONFIGURATION_TYPES})
-		string(TOUPPER ${config} config)
-		string(REPLACE /MD /MT CMAKE_C_FLAGS_${config} "${CMAKE_C_FLAGS_${config}}")
-		string(REPLACE /MD /MT CMAKE_CXX_FLAGS_${config} "${CMAKE_CXX_FLAGS_${config}}")
-	endforeach()
-endif()
 
 ################################################################################
 
