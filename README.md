@@ -55,9 +55,30 @@ TMesh_Kernel exploits MPIR to deal with arbitrarily precise rational numbers.
 MPIR is an independent software licensed under the terms of GNU LGPL v3.
 Please look at mpir/README.txt for further information.
 
--------------------
-Building the tree
--------------------
+------------------------------
+Building the tree in FAST mode
+------------------------------
+
+In this mode, the hybrid kernel is disabled.
+MPIR is not needed to compile in this mode.
+Just run the following commands:
+```
+mkdir build
+cd build
+cmake -DUSE_LAZY_KERNEL=OFF ..
+```
+
+This will produce an appropriate building configuration for your system.
+On Windows MSVC, this will produce a TMesh_Kernel.sln file.
+On Linux/OSx, this will produce a Makefile. 
+Use it as usual to compile TMesh_Kernel.
+
+**Warning:** When compiled in FAST mode, rational numbers are not supported!
+If you need the hybrid arithmetic kernel, then proceed as described here below.
+
+-------------------------------------
+Building the tree in LAZY-HYBRID mode
+-------------------------------------
 
 Before building TMesh_Kernel, you must obtain and build MPIR.
 Please look at mpir/README.txt for instructions.
@@ -71,24 +92,7 @@ cd build
 cmake ..
 ```
 
-This will produce an appropriate building configuration for your system.
-On Windows MSVC, this will produce a TMesh_Kernel.sln file.
-On Linux/OSx, this will produce a Makefile. 
-Use it as usual to compile TMesh_Kernel.
-
-**Warning:** Make sure that cmake creates a build which is compatible
-with MPIR. If you compiled MPIR for 32bits, cmake should produce 32bit builds.
-Vice-versa, if you compiled MPIR for 64bits, cmake should produce 64bit builds.
-You may need to change the default behaviour of your cmake generator.
-
-For example, on Windows MSVC cmake creates Win32 builds by default.
-To make it create a 64bit build, replace the `cmake ..` command above with:
-```
-cmake -G "Visual Studio 12 2013 Win64" ..
-```
-and possibly replace "Visual Studio 12 2013" with your own version.
-
-Thanks to Teseo Schneider for having produced the CMake environment for TMesh_Kernel.
+and proceed as for the FAST mode.
 
 -------------------
 Using the library
