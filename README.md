@@ -46,7 +46,7 @@ produce documentation in a more readable format.
 System Requirements
 --------------------
 
-TMesh_Kernel has been tested on 32 and 64 bit PCs running:
+TMesh_Kernel has been tested on 64 bit PCs running:
  - Microsoft Windows OS with MSVC
  - Linux with standard gcc/g++ development environment
  - Mac OSX
@@ -54,27 +54,6 @@ TMesh_Kernel has been tested on 32 and 64 bit PCs running:
 TMesh_Kernel exploits MPIR to deal with arbitrarily precise rational numbers.
 MPIR is an independent software licensed under the terms of GNU LGPL v3.
 Please look at mpir/README.txt for further information.
-
-------------------------------
-Building the tree in FAST mode
-------------------------------
-
-In this mode, the hybrid kernel is disabled.
-MPIR is not needed to compile in this mode.
-Just run the following commands:
-```
-mkdir build
-cd build
-cmake -DUSE_LAZY_KERNEL=OFF ..
-```
-
-This will produce an appropriate building configuration for your system.
-On Windows MSVC, this will produce a TMesh_Kernel.sln file.
-On Linux/OSx, this will produce a Makefile. 
-Use it as usual to compile TMesh_Kernel.
-
-**Warning:** When compiled in FAST mode, rational numbers are not supported!
-If you need the hybrid arithmetic kernel, then proceed as described here below.
 
 -------------------------------------
 Building the tree in LAZY-HYBRID mode
@@ -92,11 +71,31 @@ cd build
 cmake ..
 ```
 
-and proceed as for the FAST mode.
+This will produce an appropriate building configuration for your system.
+On Windows MSVC, this will produce a TMesh_Kernel.sln file.
+On Linux/OSx, this will produce a Makefile. 
+Use it as usual to compile TMesh_Kernel.
 
--------------------
-Using the library
--------------------
+------------------------------
+Building the tree in FAST mode
+------------------------------
+
+In this mode, the hybrid kernel is disabled.
+MPIR is not needed to compile in this mode.
+Just run the following commands:
+```
+mkdir build
+cd build
+cmake -DUSE_LAZY_KERNEL=OFF ..
+```
+
+and proceed as for the LAZY-HYBRID mode.
+**Warning:** When compiled in FAST mode, rational numbers are not supported!
+If you need the hybrid arithmetic kernel, compile in LAZY-HYBRID mode.
+
+-------------------------------------
+Using the library in LAZY-HYBRID mode
+-------------------------------------
 
 C/C++ code using TMesh_Kernel must be compiled according to the following rules.
 
@@ -107,28 +106,27 @@ $(TMESH_HOME)/mpir
 ```
 
 **preprocessor definitions**
-
-In all cases: `USE_HYBRID_KERNEL` and `USE_LAZY_KERNEL`
-
-Only for 64bit builds: `IS64BITPLATFORM`
+In all cases: `USE_HYBRID_KERNEL`, `USE_LAZY_KERNEL`, `IS64BITPLATFORM`
 
 **library path must include:**
 ```
-$(TMESH_HOME)/lib (if compiled for 32bit)
-$(TMESH_HOME)/lib64 (if compiled for 64bit)
+$(TMESH_HOME)/lib64
 $(TMESH_HOME)/mpir
 ```
 
 **static libraries to be linked**
-
-`kernel_Lazy.lib` (or `kernel_Lazy64.lib` for 64bit builds)
-
-`mpirXXX.lib` (XXX is either 32 or 64)
-
-On Linux/OSX the `YYY.lib` is replaced with `libYYY.a`
+`kernel_Lazy64`
+`mpir`
 
 **other options to be set**
 Support for OpenMP might be active
+
+------------------------------
+Using the library in FAST mode
+------------------------------
+As above, but all the references to mpir are no longer necessary.
+Furthermore, the only preprocessor definition to be used is:
+`IS64BITPLATFORM`
 
 ---------------------
 Copyright and license
