@@ -645,56 +645,56 @@ int incircle3D_exact(const double* p0, const double* p1, const double* p2, const
 
 	expansionObject o;
 
-	o.two_Diff(p1[0], p0[0], p1x_p0x[1], p1x_p0x[0]);
-	o.two_Diff(p1[1], p0[1], p1y_p0y[1], p1y_p0y[0]);
-	o.two_Diff(p1[2], p0[2], p1z_p0z[1], p1z_p0z[0]);
+	o.two_Diff(p1[0], p0[0], p1x_p0x);
+	o.two_Diff(p1[1], p0[1], p1y_p0y);
+	o.two_Diff(p1[2], p0[2], p1z_p0z);
 	o.Two_Square(p1x_p0x[1], p1x_p0x[0], a_1);
 	o.Two_Square(p1y_p0y[1], p1y_p0y[0], a_2);
 	o.Two_Square(p1z_p0z[1], p1z_p0z[0], a_3);
 	l_part_len = o.Gen_Sum(6, a_1, 6, a_2, l_part);
 	int l1_len = o.Gen_Sum(l_part_len, l_part, 6, a_3, l1);
 
-	o.two_Diff(p2[0], p0[0], p2x_p0x[1], p2x_p0x[0]);
-	o.two_Diff(p2[1], p0[1], p2y_p0y[1], p2y_p0y[0]);
-	o.two_Diff(p2[2], p0[2], p2z_p0z[1], p2z_p0z[0]);
+	o.two_Diff(p2[0], p0[0], p2x_p0x);
+	o.two_Diff(p2[1], p0[1], p2y_p0y);
+	o.two_Diff(p2[2], p0[2], p2z_p0z);
 	o.Two_Square(p2x_p0x[1], p2x_p0x[0], a_1);
 	o.Two_Square(p2y_p0y[1], p2y_p0y[0], a_2);
 	o.Two_Square(p2z_p0z[1], p2z_p0z[0], a_3);
 	l_part_len = o.Gen_Sum(6, a_1, 6, a_2, l_part);
 	int l2_len = o.Gen_Sum(l_part_len, l_part, 6, a_3, l2);
 
-	o.two_Diff(p3[0], p0[0], p3x_p0x[1], p3x_p0x[0]);
-	o.two_Diff(p3[1], p0[1], p3y_p0y[1], p3y_p0y[0]);
-	o.two_Diff(p3[2], p0[2], p3z_p0z[1], p3z_p0z[0]);
+	o.two_Diff(p3[0], p0[0], p3x_p0x);
+	o.two_Diff(p3[1], p0[1], p3y_p0y);
+	o.two_Diff(p3[2], p0[2], p3z_p0z);
 	o.Two_Square(p3x_p0x[1], p3x_p0x[0], a_1);
 	o.Two_Square(p3y_p0y[1], p3y_p0y[0], a_2);
 	o.Two_Square(p3z_p0z[1], p3z_p0z[0], a_3);
 	l_part_len = o.Gen_Sum(6, a_1, 6, a_2, l_part);
 	int l3_len = o.Gen_Sum(l_part_len, l_part, 6, a_3, l3);
 
-	int a11_len = o.Gen_Doubleval(l1_len, l1, a11);
-	int a22_len = o.Gen_Doubleval(l2_len, l2, a22);
+	int a11_len = l1_len; o.Double(l1_len, l1, a11);
+	int a22_len = l2_len; o.Double(l2_len, l2, a22);
 
 	o.Two_Two_Prod(p1x_p0x[1], p1x_p0x[0], p2x_p0x[1], p2x_p0x[0], a_1);
 	o.Two_Two_Prod(p1y_p0y[1], p1y_p0y[0], p2y_p0y[1], p2y_p0y[0], a_2);
 	o.Two_Two_Prod(p1z_p0z[1], p1z_p0z[0], p2z_p0z[1], p2z_p0z[0], a_3);
 	l_part_len = o.Gen_Sum(8, a_1, 8, a_2, l_part);
 	a_part2_len = o.Gen_Sum(l_part_len, l_part, 8, a_3, a_part2);
-	int a12_len = o.Gen_Doubleval(a_part2_len, a_part2, a12);
+	int a12_len = a_part2_len; o.Double(a_part2_len, a_part2, a12);
 
 	o.Two_Two_Prod(p3x_p0x[1], p3x_p0x[0], p1x_p0x[1], p1x_p0x[0], a_1);
 	o.Two_Two_Prod(p3y_p0y[1], p3y_p0y[0], p1y_p0y[1], p1y_p0y[0], a_2);
 	o.Two_Two_Prod(p3z_p0z[1], p3z_p0z[0], p1z_p0z[1], p1z_p0z[0], a_3);
 	l_part_len = o.Gen_Sum(8, a_1, 8, a_2, l_part);
 	a_part2_len = o.Gen_Sum(l_part_len, l_part, 8, a_3, a_part2);
-	int a31_len = o.Gen_Doubleval(a_part2_len, a_part2, a31);
+	int a31_len = a_part2_len; o.Double(a_part2_len, a_part2, a31);
 
 	o.Two_Two_Prod(p3x_p0x[1], p3x_p0x[0], p2x_p0x[1], p2x_p0x[0], a_1);
 	o.Two_Two_Prod(p3y_p0y[1], p3y_p0y[0], p2y_p0y[1], p2y_p0y[0], a_2);
 	o.Two_Two_Prod(p3z_p0z[1], p3z_p0z[0], p2z_p0z[1], p2z_p0z[0], a_3);
 	l_part_len = o.Gen_Sum(8, a_1, 8, a_2, l_part);
 	a_part2_len = o.Gen_Sum(l_part_len, l_part, 8, a_3, a_part2);
-	int a32_len = o.Gen_Doubleval(a_part2_len, a_part2, a32);
+	int a32_len = a_part2_len; o.Double(a_part2_len, a_part2, a32);
 
 	int det_1_len = o.Gen_Product(a11_len, a11, a22_len, a22, det_1);
 
