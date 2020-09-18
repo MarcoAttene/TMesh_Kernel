@@ -38,87 +38,9 @@
 
 #pragma optimize("", off)
 
-int expansionObject::Gen_Sum(const int elen, const double *e, const int flen, const double *f, double *h)
+void expansionObject::Two_Two_Prod(const double a1, const double a0, const double b1, const double b0, double* h)
 {
-  double Q, Qn, hh, en = e[0], fn = f[0];
-  int e_i, f_i, h_i;
-
-  h_i = e_i = f_i = 0;
-  if ((fn > en) == (fn > -en)) { Q = en; en = e[++e_i]; } 
-  else { Q = fn; fn = f[++f_i]; }
-
-  if ((e_i < elen) && (f_i < flen)) 
-  {
-    if ((fn > en) == (fn > -en)) { Quick_Two_Sum(en, Q, Qn, hh); en = e[++e_i]; }
-	else { Quick_Two_Sum(fn, Q, Qn, hh); fn = f[++f_i]; }
-    Q = Qn;
-    if (hh != 0.0) h[h_i++] = hh;
-    while ((e_i < elen) && (f_i < flen)) 
-	{
-      if ((fn > en) == (fn > -en)) { Two_Sum(Q, en, Qn, hh); en = e[++e_i]; }
-	  else { Two_Sum(Q, fn, Qn, hh); fn = f[++f_i]; }
-      Q = Qn;
-      if (hh != 0.0) h[h_i++] = hh;
-    }
-  }
-
-  while (e_i < elen) 
-  {
-    Two_Sum(Q, en, Qn, hh);
-    en = e[++e_i];
-    Q = Qn;
-    if (hh != 0.0) h[h_i++] = hh;
-  }
-  while (f_i < flen) 
-  {
-    Two_Sum(Q, fn, Qn, hh);
-    fn = f[++f_i];
-    Q = Qn;
-    if (hh != 0.0) h[h_i++] = hh;
-  }
-  if ((Q != 0.0) || (h_i == 0)) h[h_i++] = Q;
-  
-  return h_i;
-}
-
-int expansionObject::Gen_Scale(const int elen, const double *e, const double& b, double *h)
-{
-  double Q, sum, hh, pr1, pr0, enow;
-  int e_i, h_i;
-
-  Split(b, _bh, _bl);
-  Two_Prod_PreSplit(e[0], b, _bh, _bl, Q, hh);
-  h_i = 0;
-  if (hh != 0) h[h_i++] = hh;
-  
-  for (e_i = 1; e_i < elen; e_i++) 
-  {
-    enow = e[e_i];
-    Two_Prod_PreSplit(enow, b, _bh, _bl, pr1, pr0);
-    Two_Sum(Q, pr0, sum, hh);
-    if (hh != 0) h[h_i++] = hh;
-    Quick_Two_Sum(pr1, sum, Q, hh);
-    if (hh != 0) h[h_i++] = hh;
-  }
-  if ((Q != 0.0) || (h_i == 0)) h[h_i++] = Q;
-  
-  return h_i;
-}
-
-
-void expansionObject::Two_Square(const double& a1, const double& a0, double *x)
-{
-	Square(a0, _j, x[0]);
-	_0 = a0 + a0;
-	Two_Prod(a1, _0, _k, _1);
-	Two_One_Sum(_k, _1, _j, _l, _2, x[1]);
-	Square(a1, _j, _1);
-	Two_Two_Sum(_j, _1, _l, _2, x[5], x[4], x[3], x[2]);
-}
-
-
-void expansionObject::Two_Two_Prod(const double a1, const double a0, const double b1, const double b0, double *h)
-{
+	double _ch, _cl, _m, _n;
 	Split(a0, _ah, _al);
 	Split(b0, _bh, _bl);
 	Two_Product_2Presplit(a0, _ah, _al, b0, _bh, _bl, _i, h[0]);
@@ -145,51 +67,165 @@ void expansionObject::Two_Two_Prod(const double a1, const double a0, const doubl
 	Two_Sum(_m, _k, h[7], h[6]);
 }
 
+int expansionObject::Gen_Sum(const int elen, const double *e, const int flen, const double *f, double *h)
+{
+	double Q, Qn, hh, en = e[0], fn = f[0];
+	int e_k, f_k, h_k;
+
+	h_k = e_k = f_k = 0;
+	if ((fn > en) == (fn > -en)) { Q = en; e_k++; } else { Q = fn; f_k++; }
+
+	if ((e_k < elen) && (f_k < flen))
+	{
+		en = e[e_k]; fn = f[f_k];
+		if ((fn > en) == (fn > -en)) { Quick_Two_Sum(en, Q, Qn, hh); e_k++; } else { Quick_Two_Sum(fn, Q, Qn, hh); f_k++; }
+		Q = Qn;
+		if (hh != 0.0) h[h_k++] = hh;
+		while ((e_k < elen) && (f_k < flen))
+		{
+			en = e[e_k]; fn = f[f_k];
+			if ((fn > en) == (fn > -en)) { Two_Sum(Q, en, Qn, hh); e_k++; } else { Two_Sum(Q, fn, Qn, hh); f_k++; }
+			Q = Qn;
+			if (hh != 0.0) h[h_k++] = hh;
+		}
+	}
+
+	while (e_k < elen)
+	{
+		en = e[e_k++];
+		Two_Sum(Q, en, Qn, hh);
+		Q = Qn;
+		if (hh != 0.0) h[h_k++] = hh;
+	}
+
+	while (f_k < flen)
+	{
+		fn = f[f_k++];
+		Two_Sum(Q, fn, Qn, hh);
+		Q = Qn;
+		if (hh != 0.0) h[h_k++] = hh;
+	}
+	if ((Q != 0.0) || (h_k == 0)) h[h_k++] = Q;
+
+	return h_k;
+}
+
+int expansionObject::Gen_Diff(const int elen, const double *e, const int flen, const double *f, double *h)
+{
+	double Q, Qn, hh, en = e[0], fn = -f[0];
+	int e_k, f_k, h_k;
+
+	h_k = e_k = f_k = 0;
+	if ((fn > en) == (fn > -en)) { Q = en; e_k++; } else { Q = fn; f_k++; }
+
+	if ((e_k < elen) && (f_k < flen))
+	{
+		en = e[e_k]; fn = -f[f_k];
+		if ((fn > en) == (fn > -en)) { Quick_Two_Sum(en, Q, Qn, hh); e_k++; } else { Quick_Two_Sum(fn, Q, Qn, hh); f_k++; }
+		Q = Qn;
+		if (hh != 0.0) h[h_k++] = hh;
+		while ((e_k < elen) && (f_k < flen))
+		{
+			en = e[e_k]; fn = -f[f_k];
+			if ((fn > en) == (fn > -en)) { Two_Sum(Q, en, Qn, hh); e_k++; } else { Two_Sum(Q, fn, Qn, hh); f_k++; }
+			Q = Qn;
+			if (hh != 0.0) h[h_k++] = hh;
+		}
+	}
+
+	while (e_k < elen)
+	{
+		en = e[e_k++];
+		Two_Sum(Q, en, Qn, hh);
+		Q = Qn;
+		if (hh != 0.0) h[h_k++] = hh;
+	}
+
+	while (f_k < flen)
+	{
+		fn = -f[f_k++];
+		Two_Sum(Q, fn, Qn, hh);
+		Q = Qn;
+		if (hh != 0.0) h[h_k++] = hh;
+	}
+	if ((Q != 0.0) || (h_k == 0)) h[h_k++] = Q;
+
+	return h_k;
+}
+
+
+int expansionObject::Gen_Scale(const int elen, const double *e, const double& b, double *h)
+{
+	double Q, sum, hh, pr1, pr0, enow;
+	int e_k, h_k;
+
+	Split(b, _bh, _bl);
+	Two_Prod_PreSplit(e[0], b, _bh, _bl, Q, hh);
+	h_k = 0;
+	if (hh != 0) h[h_k++] = hh;
+
+	for (e_k = 1; e_k < elen; e_k++)
+	{
+		enow = e[e_k];
+		Two_Prod_PreSplit(enow, b, _bh, _bl, pr1, pr0);
+		Two_Sum(Q, pr0, sum, hh);
+		if (hh != 0) h[h_k++] = hh;
+		Quick_Two_Sum(pr1, sum, Q, hh);
+		if (hh != 0) h[h_k++] = hh;
+	}
+	if ((Q != 0.0) || (h_k == 0)) h[h_k++] = Q;
+
+	return h_k;
+}
+
+
+void expansionObject::Two_Square(const double& a1, const double& a0, double *x)
+{
+	Square(a0, _j, x[0]);
+	_0 = a0 + a0;
+	Two_Prod(a1, _0, _k, _1);
+	Two_One_Sum(_k, _1, _j, _l, _2, x[1]);
+	Square(a1, _j, _1);
+	Two_Two_Sum(_j, _1, _l, _2, x[5], x[4], x[3], x[2]);
+}
 
 int expansionObject::Sub_product(const int alen, const double *a, const int blen, const double *b, double *h)
 {
 	if (alen == 1) return Gen_Scale(blen, b, a[0], h);
-	else
-	{
-		const double* a1 = a;
-		int a1len = alen / 2;
-		const double* a2 = a1 + a1len;
-		int a2len = alen - a1len;
+	int partial = 2 * alen * blen;
+	int allmem = 2 * (partial + blen);
+	double ph1_p[1024];
+	double *ph1 = (allmem>1024) ? ((double *)malloc(allmem * sizeof(double))) : (ph1_p);
+	double *ph2 = ph1 + partial;
+	double *th = ph2 + partial;
+	double *ph[2] = { ph1, ph2 };
+	int first = 0;
+	int phl = Gen_Scale(blen, b, a[0], ph[0]);
 
-		int a1blen, a2blen;
-		double *a1b = (double *)malloc(2 * a1len * blen * sizeof(double));
-		double *a2b = (double *)malloc(2 * a2len * blen * sizeof(double));
-		a1blen = Sub_product(a1len, a1, blen, b, a1b);
-		a2blen = Sub_product(a2len, a2, blen, b, a2b);
-		int hlen = Gen_Sum(a1blen, a1b, a2blen, a2b, h);
-		free(a1b);
-		free(a2b);
-		return hlen;
+	for (int i = 1; i < alen; i++)
+	{
+		int thl = Gen_Scale(blen, b, a[i], th);
+		first = i & 1;
+		phl = Gen_Sum(phl, ph[(i+1)&1], thl, th, ph[first]);
 	}
+	if (first) for (int i = 0; i < phl; i++) h[i] = ph2[i];
+	else for (int i = 0; i < phl; i++) h[i] = ph1[i];
+	if (allmem>1024) free(ph1);
+	return phl;
 }
 
 
 int expansionObject::Gen_Product(const int alen, const double *a, const int blen, const double *b, double *h)
 {
-	if (alen == 1)
-	{
-		if (blen == 1) { Two_Prod(a[0], b[0], h); return 2; } else if (blen == 2) { Two_One_Prod(b, a[0], h); return 4; } else return Gen_Scale(blen, b, a[0], h);
-	} else if (alen == 2)
-	{
-		if (blen == 1) { Two_One_Prod(a, b[0], h); return 4; } else if (blen == 2) { Two_Two_Prod(a[1], a[0], b[1], b[0], h); return 8; } else return Sub_product(alen, a, blen, b, h);
-	} else
-	{
-		if (blen == 1) return Gen_Scale(alen, a, b[0], h);
-		else if (alen < blen) return Sub_product(alen, a, blen, b, h);
-		else return Sub_product(blen, b, alen, a, h);
-	}
+	if (blen == 1) return Gen_Scale(alen, a, b[0], h);
+	else if (alen < blen) return Sub_product(alen, a, blen, b, h);
+	else return Sub_product(blen, b, alen, a, h);
 }
 
 
 double expansionObject::To_Double(const int elen, const double *e)
 {
-  double Q = e[0];
-  for (int e_i = 1; e_i < elen; e_i++) Q += e[e_i];
-  return Q;
+	double Q = e[0];
+	for (int e_i = 1; e_i < elen; e_i++) Q += e[e_i];
+	return Q;
 }
-
