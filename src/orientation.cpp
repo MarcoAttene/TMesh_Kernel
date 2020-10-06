@@ -28,6 +28,12 @@
 
 //#pragma optimize("", off)
 
+#ifdef FABS
+#undef FABS
+#pragma intrinsic(fabs)
+#define FABS(x) fabs(x)
+#endif
+
 namespace T_MESH
 {
 
@@ -117,7 +123,7 @@ double orient2d_expansions(double* pa, double* pb, double* pc, double dsm)
 	o.Two_Two_Diff(dtl, dtr, B);
 
 	double det = expansionObject::To_Double(4, B);
-	double eb = 7.7715611723761027e-016 * dsm;
+	double eb = 2.2204460492503146e-16 * dsm;
 	if ((det >= eb) || (-det >= eb)) return det;
 
 	o.Two_Diff_Back(pa[0], pc[0], acx);
@@ -127,7 +133,7 @@ double orient2d_expansions(double* pa, double* pb, double* pc, double dsm)
 
 	if ((acx[0] == 0.0) && (acy[0] == 0.0) && (bcx[0] == 0.0) && (bcy[0] == 0.0)) return det;
 
-	eb = 1.1093356479670487e-031 * dsm + 1.1102230246251565e-016 * FABS(det);
+	eb = 1.1093356479670487e-31 * dsm + 3.3306690738754706e-16 * FABS(det);
 	det += (acx[1] * bcy[0] + bcy[1] * acx[0]) - (acy[1] * bcx[0] + bcx[1] * acy[0]);
 	if ((det >= eb) || (-det >= eb)) return det;
 
@@ -149,24 +155,10 @@ double orient2d_expansions(double* pa, double* pb, double* pc, double dsm)
 	return(D[Dl - 1]);
 }
 
-double orient3d_expansions(double* pa, double* pb, double* pc, double* pd)
+
+double orient3d_expansions(double* pa, double* pb, double* pc, double* pd, double pm)
 {
-	double fadx, fbdx, fcdx, fady, fbdy, fcdy, fadz, fbdz, fcdz, pm, eb;
-	double fbdxcdy, fcdxbdy, fcdxady, fadxcdy, fadxbdy, fbdxady, det;
-
-	fadx = pa[0] - pd[0]; fbdx = pb[0] - pd[0]; fcdx = pc[0] - pd[0];
-	fady = pa[1] - pd[1]; fbdy = pb[1] - pd[1]; fcdy = pc[1] - pd[1];
-	fadz = pa[2] - pd[2]; fbdz = pb[2] - pd[2]; fcdz = pc[2] - pd[2];
-
-	fbdxcdy = fbdx * fcdy; fcdxbdy = fcdx * fbdy;
-	fcdxady = fcdx * fady; fadxcdy = fadx * fcdy;
-	fadxbdy = fadx * fbdy; fbdxady = fbdx * fady;
-
-	det = fadz * (fbdxcdy - fcdxbdy) + fbdz * (fcdxady - fadxcdy) + fcdz * (fadxbdy - fbdxady);
-	pm = (FABS(fbdxcdy) + FABS(fcdxbdy)) * FABS(fadz) + (FABS(fcdxady) + FABS(fadxcdy)) * FABS(fbdz) + (FABS(fadxbdy) + FABS(fbdxady)) * FABS(fcdz);
-	eb = 3.3306690738754716e-016 * pm;
-	if ((det > eb) || (-det > eb)) return det;
-
+	double eb, det;
 	double adx[2], bdx[2], cdx[2], ady[2], bdy[2], cdy[2], adz[2], bdz[2], cdz[2];
 	double bdxcdy[2], cdxbdy[2], cdxady[2], adxcdy[2], adxbdy[2], bdxady[2];
 	double bc[4], ca[4], ab[4];
@@ -190,15 +182,15 @@ double orient3d_expansions(double* pa, double* pb, double* pc, double* pd)
 
 	expansionObject o;
 
-	adx[1] = fadx;
-	bdx[1] = fbdx;
-	cdx[1] = fcdx;
-	ady[1] = fady;
-	bdy[1] = fbdy;
-	cdy[1] = fcdy;
-	adz[1] = fadz;
-	bdz[1] = fbdz;
-	cdz[1] = fcdz;
+	adx[1] = pa[0] - pd[0];
+	bdx[1] = pb[0] - pd[0];
+	cdx[1] = pc[0] - pd[0];
+	ady[1] = pa[1] - pd[1];
+	bdy[1] = pb[1] - pd[1];
+	cdy[1] = pc[1] - pd[1];
+	adz[1] = pa[2] - pd[2];
+	bdz[1] = pb[2] - pd[2];
+	cdz[1] = pc[2] - pd[2];
 
 	o.Two_Prod(bdx[1], cdy[1], bdxcdy);
 	o.Two_Prod(cdx[1], bdy[1], cdxbdy);
@@ -320,17 +312,18 @@ double TMesh::tri_orientation(double *pa, double *pb, double *pc)
 
  dte_left = (pa[0]-pc[0])*(pb[1]-pc[1]);
  dte_right = (pa[1]-pc[1])*(pb[0]-pc[0]);
+
+ if (dte_left > 0.0) {if (dte_right <= 0.0) return dte_left; else dsm = dte_left + dte_right;}
+ else if (dte_left < 0.0) {if (dte_right >= 0.0) return dte_left; else dsm = -dte_left - dte_right;}
+ else return dte_left - dte_right;
+
  det = dte_left - dte_right;
-
- if (dte_left > 0.0) {if (dte_right <= 0.0) return det; else dsm = dte_left + dte_right;}
- else if (dte_left < 0.0) {if (dte_right >= 0.0) return det; else dsm = -dte_left - dte_right;}
- else return det;
-
  eb = 3.3306690738754706e-016*dsm;
  if ((det>=eb) || (-det>=eb)) return det;
 
  return orient2d_expansions(pa, pb, pc, dsm);
 }
+
 
 double TMesh::tet_orientation(double *pa, double *pb, double *pc, double *pd)
 {
@@ -341,16 +334,22 @@ double TMesh::tet_orientation(double *pa, double *pb, double *pc, double *pd)
  fady = pa[1]-pd[1]; fbdy = pb[1]-pd[1]; fcdy = pc[1]-pd[1];
  fadz = pa[2]-pd[2]; fbdz = pb[2]-pd[2]; fcdz = pc[2]-pd[2];
 
- fbdxcdy = fbdx*fcdy; fcdxbdy = fcdx*fbdy;
- fcdxady = fcdx*fady; fadxcdy = fadx*fcdy;
- fadxbdy = fadx*fbdy; fbdxady = fbdx*fady;
+ fbdxcdy = fbdx * fcdy * fadz; fcdxbdy = fcdx * fbdy * fadz;
+ fcdxady = fcdx * fady * fbdz; fadxcdy = fadx * fcdy * fbdz;
+ fadxbdy = fadx * fbdy * fcdz; fbdxady = fbdx * fady * fcdz;
+ det = (fbdxcdy - fcdxbdy) + (fcdxady - fadxcdy) + (fadxbdy - fbdxady);
+ pm = FABS(fbdxcdy) + FABS(fcdxbdy) + FABS(fcdxady) + FABS(fadxcdy) + FABS(fadxbdy) + FABS(fbdxady);
 
- det = fadz*(fbdxcdy-fcdxbdy)+fbdz*(fcdxady-fadxcdy)+fcdz*(fadxbdy-fbdxady);
- pm=(FABS(fbdxcdy)+FABS(fcdxbdy))*FABS(fadz)+(FABS(fcdxady)+FABS(fadxcdy))*FABS(fbdz)+(FABS(fadxbdy)+FABS(fbdxady))*FABS(fcdz);
- eb = 3.3306690738754716e-016*pm;
+ //fbdxcdy = fbdx * fcdy; fcdxbdy = fcdx * fbdy;
+ //fcdxady = fcdx * fady; fadxcdy = fadx * fcdy;
+ //fadxbdy = fadx * fbdy; fbdxady = fbdx * fady;
+ //det = fadz * (fbdxcdy - fcdxbdy) + fbdz * (fcdxady - fadxcdy) + fcdz * (fadxbdy - fbdxady);
+ //pm = (FABS(fbdxcdy) + FABS(fcdxbdy)) * FABS(fadz) + (FABS(fcdxady) + FABS(fadxcdy)) * FABS(fbdz) + (FABS(fadxbdy) + FABS(fbdxady)) * FABS(fcdz);
+
+ eb = 7.7715611723761027e-16*pm;
  if ((det>eb) || (-det>eb)) return det;
 
- return orient3d_expansions(pa, pb, pc, pd);
+ return orient3d_expansions(pa, pb, pc, pd, pm);
 }
 
 
