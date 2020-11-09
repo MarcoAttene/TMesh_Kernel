@@ -128,13 +128,13 @@ namespace T_MESH
 			switch (conf)
 			{
 			case 0: return interval_number(-((-low)/b.high), high/b.low);
-			case 2: return interval_number(TMESH_INFINITY);
+			case 2: return interval_number(TMESH_NAN);
 			case 3: return interval_number(-((-high) / b.high), low / b.low);
 			case 8: return interval_number(-((-low) / b.low), high / b.low);
 			case 10: return interval_number(TMESH_NAN);
 			case 11: return interval_number(-((-high) / b.high), low / b.high);
 			case 12: return interval_number(-((-low) / b.low), high / b.high);
-			case 14: return interval_number(-TMESH_INFINITY);
+			case 14: return interval_number(-TMESH_NAN);
 			case 15: return interval_number(-((-high) / b.low), low / b.high);
 			};
 			//TMesh::error("interval_number: inconsistent interval.");
